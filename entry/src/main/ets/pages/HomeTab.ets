@@ -40,7 +40,7 @@ struct HealthEduCard {
     Column() {
       // 上方图片
       Image(this.img)
-      .width('100%')
+        .width('100%')
 
       // 下方标题
       Text(this.title)
@@ -151,9 +151,9 @@ function HomePageContent() {
       .alignItems(VerticalAlign.Center)
 
       // 5. 健康宣教卡片列表
-      HealthEduCard({ img : $r('app.media.health_img1') , title : '老年痴呆'})
-      HealthEduCard({ img : $r('app.media.health_img2') ,title: '关注帕金森病' })
-      HealthEduCard({ img : $r('app.media.health_img3') ,title: '运动健康' })
+      HealthEduCard({ img: $r('app.media.health_img1'), title: '老年痴呆' })
+      HealthEduCard({ img: $r('app.media.health_img2'), title: '关注帕金森病' })
+      HealthEduCard({ img: $r('app.media.health_img3'), title: '运动健康' })
 
       // 底部留一点空
       Blank()
@@ -170,6 +170,6 @@ function HomePageContent() {
 export default struct HomeTab {
   build() {
     // 套上统一背景
-    AppPageScaffold({ content : HomePageContent})
+    AppPageScaffold({ content: HomePageContent })
   }
 }
