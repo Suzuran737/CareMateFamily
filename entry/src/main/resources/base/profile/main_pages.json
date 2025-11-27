@@ -1,0 +1,9 @@
+{
+  "src": [
+    "pages/MainTabPage",
+    "pages/VisitRecordsPage",
+    "pages/ServiceOrdersPage",
+    "pages/ServicePurchasePage",
+    "pages/AdmissionApplyPage"
+  ]
+}
