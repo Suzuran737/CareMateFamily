@@ -3,6 +3,66 @@
     {
       "name": "start_window_background",
       "value": "#FFFFFF"
+    },
+    {
+      "name": "service_tertiary_text_color",
+      "value": "#666666"
+    },
+    {
+      "name": "common_nav_text_color",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "service_primary_text_color",
+      "value": "#333333"
+    },
+    {
+      "name": "service_secondary_text_color",
+      "value": "#999999"
+    },
+    {
+      "name": "service_price_text_color",
+      "value": "#FF9900"
+    },
+    {
+      "name": "service_card_background_color",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "service_card_border_color",
+      "value": "#28000000"
+    },
+    {
+      "name": "service_gradient_start_color",
+      "value": "#2EC7A8"
+    },
+    {
+      "name": "service_gradient_mid_color",
+      "value": "#A0EACD"
+    },
+    {
+      "name": "service_gradient_soft_color",
+      "value": "#F5FFFC"
+    },
+    {
+      "name": "service_gradient_end_color",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "service_button_background_color",
+      "value": "#2EC7A8"
+    },
+    {
+      "name": "service_blank_background_color",
+      "value": "#2EC7A8"
+    },
+    {
+      "name": "service_button_text_color",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "service_required_mark_color",
+      "value": "#FF3B30"
     }
   ]
 }

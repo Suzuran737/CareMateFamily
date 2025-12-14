@@ -53,6 +53,7 @@ struct HealthEduCard {
     .borderWidth(1)
     .borderColor(0x28000000)
     .borderRadius(16)
+    .clip(true)
     .margin({ left: 4, right: 4, top: 8 })
   }
 }

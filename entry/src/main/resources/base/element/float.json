@@ -3,6 +3,122 @@
     {
       "name": "page_text_font_size",
       "value": "50fp"
+    },
+    {
+      "name": "service_mid_emphasis_font_size",
+      "value": "18fp"
+    },
+    {
+      "name": "common_nav_icon_font_size",
+      "value": "26fp"
+    },
+    {
+      "name": "common_nav_title_font_size",
+      "value": "16fp"
+    },
+    {
+      "name": "service_card_title_font_size",
+      "value": "16fp"
+    },
+    {
+      "name": "service_body_font_size",
+      "value": "14fp"
+    },
+    {
+      "name": "service_emphasis_font_size",
+      "value": "20fp"
+    },
+    {
+      "name": "service_button_font_size",
+      "value": "16fp"
+    },
+    {
+      "name": "service_button_height",
+      "value": "44vp"
+    },
+    {
+      "name": "service_button_border_radius",
+      "value": "22vp"
+    },
+    {
+      "name": "service_blank_width",
+      "value": "4vp"
+    },
+    {
+      "name": "service_blank_height",
+      "value": "16vp"
+    },
+    {
+      "name": "service_blank_border_radius",
+      "value": "2vp"
+    },
+    {
+      "name": "service_blank_right_margin",
+      "value": "8vp"
+    },
+    {
+      "name": "service_return_width",
+      "value": "48vp"
+    },
+    {
+      "name": "service_top_height",
+      "value": "48vp"
+    },
+    {
+      "name": "common_nav_height",
+      "value": "48vp"
+    },
+    {
+      "name": "common_nav_side_width",
+      "value": "48vp"
+    },
+    {
+      "name": "service_card_radius",
+      "value": "12vp"
+    },
+    {
+      "name": "service_card_border_width",
+      "value": "1vp"
+    },
+    {
+      "name": "service_card_space",
+      "value": "8vp"
+    },
+    {
+      "name": "service_image_space",
+      "value": "12vp"
+    },
+    {
+      "name": "service_text_left_right_margin",
+      "value": "12vp"
+    },
+    {
+      "name": "service_text_bottom_margin",
+      "value": "16vp"
+    },
+    {
+      "name": "service_reservation_left_right_margin",
+      "value": "16vp"
+    },
+    {
+      "name": "service_reservation_top_bottom_margin",
+      "value": "8vp"
+    },
+    {
+      "name": "service_item_large_bottom_margin",
+      "value": "20vp"
+    },
+    {
+      "name": "service_item_small_bottom_margin",
+      "value": "8vp"
+    },
+    {
+      "name": "service_button_bottom_margin",
+      "value": "16vp"
+    },
+    {
+      "name": "service_detail_card_space",
+      "value": "8vp"
     }
   ]
 }

@@ -3,7 +3,9 @@
     "pages/MainTabPage",
     "pages/VisitRecordsPage",
     "pages/ServiceOrdersPage",
+    "pages/AdmissionApplyPage",
     "pages/ServicePurchasePage",
-    "pages/AdmissionApplyPage"
+    "pages/ServiceItemDetailPage",
+    "pages/ServiceReservationPage"
   ]
 }
