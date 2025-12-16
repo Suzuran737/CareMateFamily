@@ -4,7 +4,7 @@
 import distributedKVStore from '@ohos.data.distributedKVStore';
 import type common from '@ohos.app.ability.common';
 import { AdmissionRecord } from '../model/AdmissionRecord'; // 确保路径正确
-
+import util from '@ohos.util'; // 引入系统编解码模块
 const STORE_ID = 'admission_app_store';
 const TABLE_PREFIX = 'admission_records';
 
@@ -55,7 +55,7 @@ export class KvStoreManager {
       console.info('KvStore initialized successfully (API 9+ style).');
     } catch (e) {
       console.error('Failed to initialize KvStore:', JSON.stringify(e));
-      throw e;
+      throw new Error(`Failed to initialize KvStore: ${JSON.stringify(e)}`);
     }
   }
 
@@ -75,7 +75,7 @@ export class KvStoreManager {
       console.info(`Record ${record.id} saved.`);
     } catch (e) {
       console.error(`Failed to save record ${record.id}:`, JSON.stringify(e));
-      throw e;
+      throw new Error(`Failed to save record ${record.id}: ${JSON.stringify(e)}`);
     }
   }
 
@@ -88,22 +88,21 @@ export class KvStoreManager {
     }
 
     try {
-      // 查询前缀
       const entries = await this.kvStore.getEntries(TABLE_PREFIX);
+      // 替换为系统 TextDecoder
+      const decoder = new util.TextDecoder('utf-8');
 
-      return entries.map(entry => {
-        // value 在新版 API 中可能是 Uint8Array 或 string，通常需要转换
-        let jsonString = '';
+      return entries.map((entry: distributedKVStore.Entry) => { // 显式声明entry类型
+        let jsonString: string = '';
         if (typeof entry.value === 'string') {
           jsonString = entry.value;
+        } else if (entry.value instanceof Uint8Array) {
+          jsonString = decoder.decode(entry.value); // 使用系统API解码
         } else {
-          // 如果是 Uint8Array (字节数组)，需要根据具体情况转换，
-          // 但通常 JSON.stringify 存进去如果是 string，取出来也是 string。
-          // 假如是 Uint8Array，可以使用 new util.TextDecoder().decode(entry.value)
-          jsonString = entry.value as unknown as string;
+          throw new Error(`Unsupported value type for key ${entry.key}: ${typeof entry.value}`);
         }
         return JSON.parse(jsonString) as AdmissionRecord;
-      }).sort((a, b) => b.submitTime - a.submitTime);
+      }).sort((a: AdmissionRecord, b: AdmissionRecord) => b.submitTime - a.submitTime);
 
     } catch (e) {
       console.error('Failed to get records:', JSON.stringify(e));
