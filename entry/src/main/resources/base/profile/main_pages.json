@@ -6,6 +6,8 @@
     "pages/AdmissionApplyPage",
     "pages/ServicePurchasePage",
     "pages/ServiceItemDetailPage",
-    "pages/ServiceReservationPage"
+    "pages/ServiceReservationPage",
+    "pages/LoginPage",
+    "pages/RegisterPage"
   ]
 }

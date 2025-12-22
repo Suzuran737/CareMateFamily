@@ -5,6 +5,12 @@ import ConsultTab from './ConsultTab';
 import ArchiveTab from './ArchiveTab';
 import ProfileTab from './ProfileTab';
 
+PersistentStorage.persistProp('isLogin', false);
+PersistentStorage.persistProp('userName', '未登录');
+PersistentStorage.persistProp('userPhone', '点击头像登录');
+PersistentStorage.persistProp('tempRegisteredName', '');
+PersistentStorage.persistProp('tempRegisteredPhone', '');
+
 @Entry
 @Component
 struct MainTabPage {
