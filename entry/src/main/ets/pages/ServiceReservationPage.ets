@@ -1,5 +1,8 @@
 // 服务预约表单页
 import router from '@ohos.router';
+import promptAction from '@ohos.promptAction';
+import type common from '@ohos.app.ability.common';
+import { ReservationStoreManager, type ReservationRecord } from '../utils/ReservationStoreManager';
 
 
 interface SelectOption {
@@ -9,6 +12,8 @@ interface SelectOption {
 @Entry
 @Component
 export default struct ServiceReservationPage {
+  private context: common.UIAbilityContext = getContext() as common.UIAbilityContext;
+
   // 下拉选项示例：康养用户 / 看护 / 时间
   private userOptions: SelectOption[] = [
     { value: '张三（父亲）' },
@@ -430,7 +435,7 @@ export default struct ServiceReservationPage {
         .layoutWeight(1)
 
         // 底部“预约下单”按钮
-        Row() {
+        Column() {
           Button('预约下单')
             .width('80%')
             .height($r('app.float.service_button_height'))
@@ -439,8 +444,112 @@ export default struct ServiceReservationPage {
             .fontSize($r('app.float.service_button_font_size'))
             .borderRadius($r('app.float.service_button_border_radius'))
             .onClick(() => {
-              // 这里可以添加表单校验逻辑，例如检查必填项、手机号长度等
-              console.log('预约下单：', this.contactName, this.contactPhone, this.address);
+              // 表单校验：必填项与手机号长度要求
+              const showValidation = (message: string): void => {
+                promptAction.showDialog({
+                  message: message,
+                  buttons: [
+                    {
+                      text: '确认',
+                      color: '#07C6A5'
+                    }
+                  ]
+                });
+              };
+
+              const contactName = this.contactName.trim();
+              const contactPhone = this.contactPhone.trim();
+              const address = this.address.trim();
+
+              if (this.selectedUserIndex < 0) {
+                showValidation('请选择康养用户');
+                return;
+              }
+              if (this.selectedNurseIndex < 0) {
+                showValidation('请选择看护名称');
+                return;
+              }
+              if (this.selectedTimeIndex < 0) {
+                showValidation('请选择预约时间');
+                return;
+              }
+              if (!contactName) {
+                showValidation('请输入联系人');
+                return;
+              }
+              if (!contactPhone) {
+                showValidation('请输入手机号码');
+                return;
+              }
+              if (contactPhone.length !== 11) {
+                showValidation('手机号需为 11 位');
+                return;
+              }
+              if (!address) {
+                showValidation('请输入地址');
+                return;
+              }
+
+              // 保存预约订单到本地KvStore
+              const record: ReservationRecord = {
+                id: `${Date.now()}`,
+                submitTime: Date.now(),
+                serviceUser: this.selectedUserIndex >= 0 ? this.userOptions[this.selectedUserIndex].value : '',
+                nurseName: this.selectedNurseIndex >= 0 ? this.nurseOptions[this.selectedNurseIndex].value : '',
+                serviceTime: this.selectedTimeIndex >= 0 ? this.timeOptions[this.selectedTimeIndex].value : '',
+                contactName: contactName,
+                contactPhone: contactPhone,
+                address: address,
+                remark: this.remark
+              };
+
+              ReservationStoreManager.getInstance().initKvStore(this.context)
+                .then(() => ReservationStoreManager.getInstance().saveReservation(record))
+                .then(() => {
+                  // 弹出确认框提示保存成功
+                  promptAction.showDialog({
+                    message: '已成功下单',
+                    buttons: [
+                      {
+                        text: '确认',
+                        color: '#07C6A5'
+                      }
+                    ]
+                  });
+                })
+                .catch((err: Error) => {
+                  console.error('下单失败:', err);
+                });
+            })
+
+          // 查看已保存订单
+          Button('查看已保存订单')
+            .width('80%')
+            .height($r('app.float.service_button_height'))
+            .backgroundColor($r('app.color.service_button_background_color'))
+            .fontColor($r('app.color.service_button_text_color'))
+            .fontSize($r('app.float.service_button_font_size'))
+            .borderRadius($r('app.float.service_button_border_radius'))
+            .margin({ top: 12 })
+            .onClick(() => {
+              // 读取已保存订单并弹出数量提示
+              ReservationStoreManager.getInstance().initKvStore(this.context)
+                .then(() => ReservationStoreManager.getInstance().getReservations())
+                .then((list: ReservationRecord[]) => {
+                  const total = list.length;
+                  promptAction.showDialog({
+                    title: '提示',
+                    message: `已保存订单数量：${total}`
+                  });
+                })
+                .catch((err: Error) => {
+                  // 读取失败时弹出提示，便于定位问题
+                  promptAction.showDialog({
+                    title: '提示',
+                    message: `读取订单失败：${err?.message ?? '未知错误'}`
+                  });
+                  console.error('读取订单失败:', err);
+                });
             })
         }
         .width('100%')

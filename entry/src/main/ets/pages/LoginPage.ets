@@ -83,17 +83,24 @@ struct LoginPage {
     Column() {
       // 顶部导航栏
       Row() {
-        // 实际应用中应有返回按钮
+        Text('<')
+          .fontSize(24)
+          .fontColor(0xFFFFFF)
+          .margin({ left: 16 })
+          .onClick(() => router.back())
+
         Text('登录')
           .fontSize(18)
           .fontColor(Color.Black)
           .fontWeight(FontWeight.Medium)
+          .layoutWeight(1)
+          .textAlign(TextAlign.Center)
+          .margin({ right: 40 }) // 留出左侧 Text 的空间
       }
       .width('100%')
       .height(56)
-      .padding({ top: 0, bottom: 0 })
-      .justifyContent(FlexAlign.Center)
-      .backgroundColor(Color.White) // 导航栏背景确保是白色，与顶部背景区分
+      .alignItems(VerticalAlign.Center)
+      .zIndex(1)
 
       Scroll() { // 使用 Scroll 包裹内容，避免输入法弹出导致的溢出问题
         Column() {
@@ -182,13 +189,15 @@ struct LoginPage {
     .width('100%')
     .height('100%')
     .backgroundColor(Color.White)
-    // 顶部背景色
     .linearGradient({
       angle: 180,
       colors: [
-        [this.mainColor, 0.0],
-        [Color.White, 0.3]
+        [0xFF2EC7A8, 0.0],
+        [0xFFA0EACD, 0.35],
+        [0xFFF5FFFC, 0.5],
+        [0xFFFFFFFF, 1.0]
       ]
     })
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM]);
   }
 }

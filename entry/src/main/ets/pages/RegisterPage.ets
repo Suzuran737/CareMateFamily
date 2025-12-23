@@ -80,7 +80,7 @@ struct RegisterPage {
         // 修正：使用 Text 符号 '<' 模拟返回箭头
         Text('<')
           .fontSize(24)
-          .fontColor(this.mainColor)
+          .fontColor(0xFFFFFF)
           .margin({ left: 16 })
           .onClick(() => router.back())
 
@@ -95,7 +95,6 @@ struct RegisterPage {
       .width('100%')
       .height(56)
       .alignItems(VerticalAlign.Center)
-      .backgroundColor(Color.White)
       .zIndex(1)
 
       Scroll() {
@@ -156,13 +155,15 @@ struct RegisterPage {
     .width('100%')
     .height('100%')
     .backgroundColor(Color.White)
-    // 顶部背景色
     .linearGradient({
       angle: 180,
       colors: [
-        [this.mainColor, 0.0],
-        [Color.White, 0.3]
+        [0xFF2EC7A8, 0.0],
+        [0xFFA0EACD, 0.35],
+        [0xFFF5FFFC, 0.5],
+        [0xFFFFFFFF, 1.0]
       ]
     })
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM]);
   }
 }
