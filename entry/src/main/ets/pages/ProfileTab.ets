@@ -14,14 +14,19 @@ export default struct ProfileTab {
   }
 
   build() {
-    Scroll() {
+    Column() {
       Column() {
         // 1. 顶部标题栏
-        Text('我的')
-          .fontSize(18)
-          .fontColor(Color.White)
-          .fontWeight(FontWeight.Medium)
-          .margin({ top: 16, bottom: 30 })
+        Row() {
+          Text('首页')
+            .fontSize($r('app.float.home_header_title_font_size'))
+            .fontWeight(FontWeight.Normal)
+            .fontColor(0xFFFFFFFF)
+        }
+        .height($r('app.float.home_header_height'))
+        .margin({bottom : 20})
+        .justifyContent(FlexAlign.Center)
+        .alignItems(VerticalAlign.Center)
 
         // 2. 个人信息区
         Column() {
@@ -56,7 +61,7 @@ export default struct ProfileTab {
         .width('100%')
         .alignItems(HorizontalAlign.Center)
 
-        // 3. 功能列表区 - 已根据你的截图修正文件名
+        // 3. 功能列表区
         Column({ space: 12 }) {
           ProfileItem({
             icon: $r('app.media.ic_consultation_record'),
@@ -89,7 +94,7 @@ export default struct ProfileTab {
                 AppStorage.setOrCreate('userName', '未登录');
                 AppStorage.setOrCreate('userPhone', '点击头像登录');
               }
-              router.replaceUrl({ url: 'pages/LoginPage' });
+              router.pushUrl({ url: 'pages/LoginPage' });
             }
           })
         }
@@ -100,7 +105,6 @@ export default struct ProfileTab {
     }
     .width('100%')
     .height('100%')
-    .scrollBar(BarState.Off)
   }
 }
 
@@ -126,8 +130,8 @@ struct ProfileItem {
 
       Text('>')
         .fontSize(20)
-        .fontColor(0xCCCCCC)
-        .fontWeight(FontWeight.Lighter)
+        .fontColor(0x333333)
+        .fontWeight(FontWeight.Normal)
         .margin({ right: 4 })
     }
     .width('100%')
@@ -135,6 +139,8 @@ struct ProfileItem {
     .padding({ left: 16, right: 16 })
     .backgroundColor(Color.White)
     .borderRadius(12)
+    .borderWidth(1)
+    .borderColor(0x28000000)
     .shadow({ radius: 2, color: 0x10000000, offsetX: 0, offsetY: 2 })
     .onClick(() => {
       if (this.onItemClick) this.onItemClick();
