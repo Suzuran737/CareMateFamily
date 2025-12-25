@@ -1,6 +1,6 @@
 // pages/AdmissionApplyPage.ets
 
-import { AdmissionItem, AdmissionRecord } from '../model/AdmissionRecord';
+import { AdmissionItem, AdmissionRecord,  ApplyFormData } from '../model/AdmissionRecord';
 import { KvStoreManager } from '../utils/KvStoreManager';
 import promptAction from '@ohos.promptAction';
 import router from '@ohos.router';
@@ -14,7 +14,7 @@ struct AdmissionApplyPage {
   @State items: AdmissionItem[] = [];
   @State showInlineForm: boolean = false;
   @State showEditForm: boolean = false;
-  @State newItem: AdmissionItem = { name: '', org: '', dept: '', room: '' };
+  @State newItem: AdmissionItem = { name: '', org: '', dept: '', room: '', remark: '' };
   @State editingIndex: number = -1; // 正在编辑的项目索引
 
   // 使用getContext()获取当前页面的context
@@ -188,6 +188,7 @@ struct AdmissionApplyPage {
           this.InputBuilder('机构', '请输入机构名称', this.newItem.org, (val) => this.newItem.org = val)
           this.InputBuilder('部门', '请输入部门名称', this.newItem.dept, (val) => this.newItem.dept = val)
           this.InputBuilder('房间', '请输入房间名称', this.newItem.room, (val) => this.newItem.room = val)
+          this.InputBuilder('备注', '请输入备注信息', this.newItem.remark, (val) => this.newItem.remark = val)
 
           Row() {
             Button('取消')
@@ -234,7 +235,7 @@ struct AdmissionApplyPage {
 
   // --- 逻辑处理 ---
   onAdd() {
-    this.newItem = { name: '', org: '', dept: '', room: '' };
+    this.newItem = { name: '', org: '', dept: '', room: '', remark: '' };
     this.showInlineForm = true;
     this.showEditForm = false;
     this.editingIndex = -1;
@@ -248,7 +249,8 @@ struct AdmissionApplyPage {
         name: sourceItem.name,
         org: sourceItem.org,
         dept: sourceItem.dept,
-        room: sourceItem.room
+        room: sourceItem.room,
+        remark: sourceItem.remark // <-- 确保拷贝备注
       };
 
       this.newItem = itemToEdit;
@@ -294,7 +296,7 @@ struct AdmissionApplyPage {
     this.showInlineForm = false;
     this.showEditForm = false;
     this.editingIndex = -1;
-    this.newItem = { name: '', org: '', dept: '', room: '' };
+    this.newItem = { name: '', org: '', dept: '', room: '', remark: '' };
   }
 
   onFormSubmit() {
@@ -307,7 +309,8 @@ struct AdmissionApplyPage {
       name: this.newItem.name.trim(),
       org: this.newItem.org.trim(),
       dept: this.newItem.dept.trim(),
-      room: this.newItem.room.trim()
+      room: this.newItem.room.trim(),
+      remark: this.newItem.remark.trim()
     };
 
     if (this.showEditForm && this.editingIndex >= 0) {
@@ -357,34 +360,61 @@ struct AdmissionApplyPage {
       });
   }
 
-  private submitApplication() {
-    // 创建深拷贝（显式实例化AdmissionItem，满足类型约束）
-    const itemsCopy: AdmissionItem[] = this.items.map(item => {
-      const newItem = new AdmissionItem();
-      newItem.name = item.name;
-      newItem.org = item.org;
-      newItem.dept = item.dept;
-      newItem.room = item.room;
-      return newItem;
-    });
+  private async submitApplication() {
+    // 1. 显式标注 boolean 类型
+    const isSingle: boolean = this.items.length === 1;
 
-    // 根据 AdmissionRecord 构造函数，传递 itemsCopy 作为 data
-    const newRecord = new AdmissionRecord('MULTI', itemsCopy);
+    try {
+      await KvStoreManager.getInstance().initKvStore(this.context);
 
-    // 确保KvStore已初始化
-    KvStoreManager.getInstance().initKvStore(this.context)
-      .then(() => KvStoreManager.getInstance().saveRecord(newRecord))
-      .then(() => {
-        console.info('批量申请记录已成功存储到 KvStore:', newRecord.id);
-        promptAction.showToast({
-          message: `成功提交 ${this.items.length} 人的申请`,
-          duration: 2000
+      if (isSingle) {
+        const item: AdmissionItem = this.items[0];
+        const singleData: ApplyFormData = new ApplyFormData();
+
+        singleData.name = item.name;
+        singleData.org = item.org;
+        singleData.dept = item.dept;
+
+        // --- 核心修正：直接存入 room，不要再写进 remark ---
+        singleData.room = item.room;
+        singleData.remark = item.remark; // 备注恢复清净，不再显示“预排房间...”
+
+        const record = new AdmissionRecord('SINGLE', singleData);
+        await this.executeSave(record, true);
+      } else {
+        // --- 处理批量申请 ---
+        const itemsCopy: AdmissionItem[] = this.items.map((item: AdmissionItem): AdmissionItem => {
+          const newItem = new AdmissionItem();
+          newItem.name = item.name;
+          newItem.org = item.org;
+          newItem.dept = item.dept;
+          newItem.room = item.room;
+          newItem.remark = item.remark;
+          return newItem;
         });
-        this.items = []; // 清空列表
-      })
-      .catch((err: BusinessError) => {
-        console.error('存储批量申请记录失败:', err.code, err.message);
-        promptAction.showToast({ message: '数据存储失败，请重试！', duration: 3000 });
+
+        const record = new AdmissionRecord('MULTI', itemsCopy);
+        await this.executeSave(record, false);
+      }
+    } catch (e) {
+      console.error('提交过程发生异常');
+    }
+  }
+
+  /**
+   * 提取公共保存逻辑，确保存储过程也是强类型的
+   */
+  private async executeSave(record: AdmissionRecord, isSingle: boolean) {
+    const success: boolean = await KvStoreManager.getInstance().saveRecord(record);
+    if (success) {
+      promptAction.showToast({
+        message: isSingle ? '单人申请提交成功' : `已成功提交 ${this.items.length} 人的批量申请`,
+        duration: 2000
       });
+      this.items = [];
+      setTimeout(() => {
+        router.back();
+      }, 500);
+    }
   }
 }

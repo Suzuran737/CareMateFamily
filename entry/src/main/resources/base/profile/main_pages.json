@@ -8,6 +8,8 @@
     "pages/ServiceItemDetailPage",
     "pages/ServiceReservationPage",
     "pages/LoginPage",
+    "pages/AdmissionRecordsPage",
+    "pages/AdmissionRecordDetailPage",
     "pages/RegisterPage"
   ]
 }
