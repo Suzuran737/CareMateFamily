@@ -144,41 +144,42 @@ struct AdmissionFormPage {
     .margin({ bottom: 12 })
   }
 
-  // --- 逻辑 ---
-  onSubmit() {
+  // 示例：AdmissionFormPage.ets 里的提交方法
+  async onSubmit() {
     if (!this.formData.name || !this.formData.org || !this.formData.dept) {
-      promptAction.showToast({ message: '请完善带 * 的必填项', duration: 2000 });
+      promptAction.showToast({ message: '请填写必填项' });
       return;
     }
 
-    // 显式创建 ApplyFormData 拷贝
-    const formDataCopy = new ApplyFormData();
-    formDataCopy.name = this.formData.name;
-    formDataCopy.org = this.formData.org;
-    formDataCopy.dept = this.formData.dept;
-    formDataCopy.remark = this.formData.remark;
+    // 构建记录对象
+    const data = new ApplyFormData();
+    data.name = this.formData.name;
+    data.org = this.formData.org;
+    data.dept = this.formData.dept;
+    data.remark = this.formData.remark; // 这里的备注只存用户填写的备注
+    data.room = ""; // 单人表单页如果没有房间输入框，这里可以设为空字符串
 
-    const newRecord = new AdmissionRecord('SINGLE', formDataCopy);
+    const newRecord = new AdmissionRecord('SINGLE', data);
 
-    // 确保KvStore已初始化
-    KvStoreManager.getInstance().initKvStore(this.context)
-      .then(() => KvStoreManager.getInstance().saveRecord(newRecord))
-      .then(() => {
-        console.info('单人申请记录已成功存储到 KvStore:', newRecord.id);
+    try {
+      // 1. 初始化数据库
+      await KvStoreManager.getInstance().initKvStore(this.context);
 
-        promptAction.showToast({
-          message: '申请提交成功！',
-          duration: 2000,
-          bottom: 300
-        });
+      // 2. 关键：必须 await 结果，确保数据写进硬盘
+      console.info('正在保存数据...');
+      const success = await KvStoreManager.getInstance().saveRecord(newRecord);
 
+      if (success) {
+        promptAction.showToast({ message: '申请已提交成功' });
+        // 3. 稍微延迟一下再返回，确保数据库持久化完成
         setTimeout(() => {
-          try { router.back() } catch(e) {}
-        }, 1000);
-      })
-      .catch((e: Object) => {
-        console.error('存储单人申请记录失败:', JSON.stringify(e));
-        promptAction.showToast({ message: '数据存储失败，请重试！', duration: 3000 });
-      });
+          router.back();
+        }, 300);
+      } else {
+        promptAction.showToast({ message: '保存失败，请重试' });
+      }
+    } catch (e) {
+      console.error('提交逻辑崩溃');
+    }
   }
 }
