@@ -33,3 +33,35 @@ export class AdmissionRecord {
     this.data = data;
   }
 }
+
+//用户档案信息
+export class UserInfo {
+  id: string = '';          // 用户ID
+  name: string = '';        // 姓名
+  avatar: string = '';      // 头像URL
+  gender: string = '男'; // 性别
+  relationship: string = ''; // 关系
+  birthday: string = '';    // 生日
+  idCard: string = '';      // 身份证号
+}
+//问诊订单信息
+export class OrderInfo {
+  id: string = '';          // ID
+  paid: boolean = false;
+  patient: string = '';
+  doctor: string = '';
+  time: string = '';
+  amount: string = '';
+  symptom: string = '';
+  medical_history: string = '';
+  allergy_history: string = '';
+  diagnosis: string = '';
+  prescription: string = '';
+}
+//药物信息
+export class MedicineInfo {
+  id: string = '';          // ID
+  name: string = '';
+  type: string = '';
+
+}
