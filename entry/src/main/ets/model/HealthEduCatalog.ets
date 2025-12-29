@@ -1,5 +1,5 @@
 /**
- * 健康宣教文章数据（存放在代码中）
+ * 健康宣教文章数据
  */
 
 export interface HealthEduItem {

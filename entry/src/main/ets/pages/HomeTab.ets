@@ -81,9 +81,6 @@ struct HealthEduCard {
 
 
 /**
- * 健康宣教数据结构
- */
-/**
  * 首页 Tab 页面
  */
 @Component
