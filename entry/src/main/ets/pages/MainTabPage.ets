@@ -49,7 +49,7 @@ struct MainTabPage {
       TabContent() {
         ConsultTab();
       }
-      .tabBar(this.tabItem('咨询', $r('app.media.tab_consult'), 2))
+      .tabBar(this.tabItem('咨讯', $r('app.media.tab_consult'), 2))
 
       TabContent() {
         ArchiveTab();

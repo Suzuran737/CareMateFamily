@@ -81,7 +81,7 @@ export default struct ProfileTab {
             icon: $r('app.media.ic_admission_apply'),
             title: '入住申请',
             // 对应文件名：AdmissionApplyPage.ets
-            onItemClick: () => this.navigateTo('AdmissionApplyPage')
+            onItemClick: () => this.navigateTo('AdmissionRecordsPage')
           })
 
           ProfileItem({

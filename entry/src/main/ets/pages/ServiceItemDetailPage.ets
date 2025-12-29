@@ -51,7 +51,7 @@ export default struct ServiceItemDetailPage {
         .onClick(() => router.back())
 
         // 中：标题（占满剩余空间，居中）
-        Text('服务详情列表')
+        Text('服务项目详情')
           .fontSize($r('app.float.common_nav_title_font_size'))
           .fontWeight(FontWeight.Normal)
           .fontColor($r('app.color.common_nav_text_color'))

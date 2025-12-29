@@ -84,7 +84,7 @@ export default struct ServiceReservationPage {
         .onClick(() => router.back())
 
         // 中：标题（占满剩余空间，居中）
-        Text('服务项目列表')
+        Text('服务预约')
           .fontSize($r('app.float.common_nav_title_font_size'))
           .fontWeight(FontWeight.Normal)
           .fontColor($r('app.color.common_nav_text_color'))
@@ -518,9 +518,14 @@ export default struct ServiceReservationPage {
               }
 
               // 保存预约订单到本地KvStore
+              const now: number = Date.now();
               const record: ReservationRecord = {
-                id: `${Date.now()}`,
-                submitTime: Date.now(),
+                id: `${now}`,
+                submitTime: now,
+                serviceType: this.detail.typeName,
+                status: '待服务',
+                orderNo: `kh_${now}`,
+                price: this.detail.price,
                 serviceUser: this.selectedUserIndex >= 0 ? this.userOptions[this.selectedUserIndex].value : '',
                 nurseName: this.selectedNurseIndex >= 0 ? this.nurseOptions[this.selectedNurseIndex].value : '',
                 serviceTime: this.selectedTimeIndex >= 0 ? this.timeOptions[this.selectedTimeIndex].value : '',
@@ -549,8 +554,8 @@ export default struct ServiceReservationPage {
                 });
             })
 
-          // 查看已保存订单
-          Button('查看已保存订单')
+          // 清空已保存订单
+          Button('清空已保存订单')
             .width('80%')
             .height($r('app.float.service_button_height'))
             .backgroundColor($r('app.color.service_button_background_color'))
@@ -559,23 +564,25 @@ export default struct ServiceReservationPage {
             .borderRadius($r('app.float.service_button_border_radius'))
             .margin({ top: 12 })
             .onClick(() => {
-              // 读取已保存订单并弹出数量提示
               ReservationStoreManager.getInstance().initKvStore(this.context)
-                .then(() => ReservationStoreManager.getInstance().getReservations())
-                .then((list: ReservationRecord[]) => {
-                  const total = list.length;
+                .then(() => ReservationStoreManager.getInstance().clearReservations())
+                .then(() => {
                   promptAction.showDialog({
-                    title: '提示',
-                    message: `已保存订单数量：${total}`
+                    message: '已清空已保存订单',
+                    buttons: [
+                      {
+                        text: '确认',
+                        color: '#07C6A5'
+                      }
+                    ]
                   });
                 })
                 .catch((err: Error) => {
-                  // 读取失败时弹出提示，便于定位问题
                   promptAction.showDialog({
                     title: '提示',
-                    message: `读取订单失败：${err?.message ?? '未知错误'}`
+                    message: `清空订单失败：${err?.message ?? '未知错误'}`
                   });
-                  console.error('读取订单失败:', err);
+                  console.error('清空订单失败:', err);
                 });
             })
         }

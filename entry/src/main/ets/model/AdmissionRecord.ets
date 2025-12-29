@@ -4,6 +4,7 @@ export class AdmissionItem {
   org: string = '';
   dept: string = '';
   room: string = '';
+  remark: string = '';
 }
 
 // 2. 声明 ApplyFormData
@@ -11,6 +12,7 @@ export class ApplyFormData {
   name: string = '';
   org: string = '';
   dept: string = '';
+  room: string = '';   // <-- 新增这一行
   remark: string = '';
 }
 
@@ -25,8 +27,8 @@ export class AdmissionRecord {
   data: AdmissionData;
 
   constructor(type: 'SINGLE' | 'MULTI', data: AdmissionData) {
-    // 使用时间戳作为简单 ID
-    this.id = 'record_' + Date.now().toString();
+    // 增加随机数后缀，确保 ID 绝对唯一
+    this.id = 'rec_' + Date.now().toString() + '_' + Math.floor(Math.random() * 1000).toString();
     this.type = type;
     this.submitTime = Date.now();
     this.status = 'PENDING';

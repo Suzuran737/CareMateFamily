@@ -3,36 +3,6 @@ import router from '@ohos.router';
 import type common from '@ohos.app.ability.common';
 import { loadServiceCatalog, type ServiceItem } from '../model/ServiceCatalog';
 
-// 示例数据（后续可改为从 JSON 读取）
-/* const SERVICE_LIST: ServiceItem[] = [
-  {
-    id: 1,
-    title: '检查',
-    orgName: '福建星网锐捷',
-    typeName: '检查',
-    price: 36,
-    image: $r('app.media.service_img1')
-  },
-  {
-    id: 2,
-    title: '检查',
-    orgName: '中山大学展示中心',
-    typeName: '检查',
-    price: 36,
-    image: $r('app.media.service_img1')
-  },
-  {
-    id: 3,
-    title: '检查',
-    orgName: '示例康养中心',
-    typeName: '检查',
-    price: 36,
-    image: $r('app.media.service_img1')
-  }
-];
-*/
-
-
 // 服务项目卡片组件
 @Component
 struct ServiceItemCard {
