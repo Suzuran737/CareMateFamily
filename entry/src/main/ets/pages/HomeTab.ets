@@ -208,7 +208,7 @@ export default struct HomeTab {
               })
             }
             .onClick((): void => {
-              router.pushUrl({ url: 'pages/AdmissionApplyPage' });
+              router.pushUrl({ url: 'pages/AdmissionRecordsPage' });
             })
           }
           .width('100%')
