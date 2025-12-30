@@ -24,13 +24,13 @@ struct AdmissionRecordDetailPage {
       // 1. 导航栏
       Row() {
         Text('<')
-          .fontSize(24)
+          .fontSize(26)
           .fontColor(Color.White)
           .margin({ left: 16 })
           .onClick(() => router.back())
         Text('申请详情')
-          .fontSize(18)
-          .fontWeight(FontWeight.Bold)
+          .fontSize(16)
+          .fontWeight(FontWeight.Normal)
           .fontColor(Color.White)
           .layoutWeight(1)
           .textAlign(TextAlign.Center)
@@ -38,7 +38,7 @@ struct AdmissionRecordDetailPage {
       }
       .width('100%')
       .height(56)
-      .backgroundColor('#07C6A5')
+      .backgroundColor('#ff12cdaf')
 
       if (this.record) {
         Scroll() {
@@ -100,7 +100,7 @@ struct AdmissionRecordDetailPage {
       Text('您的申请正在处理中，请耐心等待')
         .fontSize(14).fontColor(Color.White).margin({ top: 8 }).opacity(0.8)
     }
-    .width('100%').padding(30).backgroundColor('#07C6A5').alignItems(HorizontalAlign.Center)
+    .width('100%').padding(30).backgroundColor('#ff12cdaf').alignItems(HorizontalAlign.Center)
     .margin({ bottom: 16 })
   }
 

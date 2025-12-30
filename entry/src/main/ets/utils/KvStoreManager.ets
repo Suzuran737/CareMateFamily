@@ -129,4 +129,27 @@ export class KvStoreManager {
       return [];
     }
   }
+
+  // 清空所有入住申请记录
+  public async clearRecords(): Promise<boolean> {
+    if (!this.kvStore) return false;
+
+    try {
+      const entries = await this.kvStore.getEntries(new distributedKVStore.Query());
+      const keys: string[] = [];
+      for (let i = 0; i < entries.length; i++) {
+        const key = entries[i].key;
+        if (typeof key === 'string' && key.startsWith(TABLE_PREFIX)) {
+          keys.push(key);
+        }
+      }
+      if (keys.length === 0) {
+        return true;
+      }
+      await this.kvStore.deleteBatch(keys);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }
