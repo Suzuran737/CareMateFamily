@@ -123,6 +123,13 @@ export default struct HomeTab {
       list[1] = t;
     }
 
+    // 如果交换后的第一个数据还是相同的,交换前两项
+    if (oldIds[0] == newIds[0]) {
+      const t: HealthEduItem = list[0];
+      list[0] = list[1];
+      list[1] = t;
+    }
+
     // 更新状态：赋新引用触发重新渲染
     this.healthEduList = list;
   }
