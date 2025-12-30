@@ -15,13 +15,13 @@ export interface HealthData {
 }
 
 // 健康数据类型
-export const HEALTH_TYPES: string[] = ['心率', '血氧', '体温', '血糖', '血压', '睡眠', '体脂'];
+export const HEALTH_TYPES: string[] = ['心率', '血氧', '体温', '血糖', '血压', '压力', '睡眠'];
 
 // 模拟用户数据
 export const USERS: User[] = [
-  { id: 1, name: '张三' },
-  { id: 2, name: '李四' },
-  { id: 3, name: '王五' }
+  { id: 1, name: '刘刚' },
+  { id: 2, name: '赵婷' },
+  { id: 3, name: '王国栋' }
 ];
 
 // 模拟健康数据
@@ -70,19 +70,47 @@ export const MOCK_HEALTH_DATA: HealthData[] = [
   { userId: 1, type: '睡眠', value: '7.2', measurementTime: '2024-01-14 22:00-06:30', unit: '小时' },
   { userId: 1, type: '睡眠', value: '8.1', measurementTime: '2024-01-19 22:30-06:45', unit: '小时' },
 
-  { userId: 1, type: '体脂', value: '18.8', measurementTime: '2024-01-09 18:30', unit: '%' },
-  { userId: 1, type: '体脂', value: '18.5', measurementTime: '2024-01-14 19:00', unit: '%' },
-  { userId: 1, type: '体脂', value: '18.2', measurementTime: '2024-01-19 20:15', unit: '%' },
+  { userId: 1, type: '压力', value: '2', measurementTime: '2024-01-10 19:30', unit: '' },
+  { userId: 1, type: '压力', value: '3', measurementTime: '2024-01-15 19:50', unit: '' },
+  { userId: 1, type: '压力', value: '2', measurementTime: '2024-01-20 19:10', unit: '' },
 
   // 李四的数据
   { userId: 2, type: '心率', value: '68', measurementTime: '2024-01-15 09:00', unit: '次/分' },
   { userId: 2, type: '心率', value: '70', measurementTime: '2024-01-15 14:20', unit: '次/分' },
+  { userId: 2, type: '心率', value: '72', measurementTime: '2024-01-16 08:10', unit: '次/分' },
+  { userId: 2, type: '心率', value: '69', measurementTime: '2024-01-16 18:00', unit: '次/分' },
   { userId: 2, type: '血氧', value: '99%', measurementTime: '2024-01-15 10:00', unit: '' },
+  { userId: 2, type: '血氧', value: '98%', measurementTime: '2024-01-15 21:00', unit: '' },
   { userId: 2, type: '体温', value: '36.7', measurementTime: '2024-01-15 11:30', unit: '°C' },
+  { userId: 2, type: '体温', value: '36.5', measurementTime: '2024-01-16 09:30', unit: '°C' },
   { userId: 2, type: '血糖', value: '4.8', measurementTime: '2024-01-15 07:30', unit: 'mmol/L' },
+  { userId: 2, type: '血糖', value: '5.2', measurementTime: '2024-01-16 12:10', unit: 'mmol/L' },
   { userId: 2, type: '血压', value: '118/76', measurementTime: '2024-01-15 09:00', unit: 'mmHg' },
+  { userId: 2, type: '血压', value: '121/79', measurementTime: '2024-01-16 15:40', unit: 'mmHg' },
   { userId: 2, type: '睡眠', value: '8.0', measurementTime: '2024-01-14 22:30-06:30', unit: '小时' },
-  { userId: 2, type: '体脂', value: '20.2', measurementTime: '2024-01-14 20:00', unit: '%' }
+  { userId: 2, type: '睡眠', value: '7.4', measurementTime: '2024-01-15 23:00-06:20', unit: '小时' },
+  { userId: 2, type: '压力', value: '1', measurementTime: '2024-01-15 10:30', unit: '' },
+  { userId: 2, type: '压力', value: '2', measurementTime: '2024-01-16 18:20', unit: '' },
+
+  // 王五的数据
+  { userId: 3, type: '心率', value: '80', measurementTime: '2024-01-12 08:20', unit: '次/分' },
+  { userId: 3, type: '心率', value: '84', measurementTime: '2024-01-12 19:10', unit: '次/分' },
+  { userId: 3, type: '心率', value: '82', measurementTime: '2024-01-18 08:10', unit: '次/分' },
+  { userId: 3, type: '心率', value: '78', measurementTime: '2024-01-18 19:00', unit: '次/分' },
+  { userId: 3, type: '心率', value: '78', measurementTime: '2024-01-18 19:00', unit: '次/分' },
+  { userId: 3, type: '心率', value: '92', measurementTime: '2024-01-18 19:00', unit: '次/分' },
+  { userId: 3, type: '血氧', value: '95%', measurementTime: '2024-01-12 08:30', unit: '' },
+  { userId: 3, type: '血氧', value: '96%', measurementTime: '2024-01-18 09:00', unit: '' },
+  { userId: 3, type: '体温', value: '36.8', measurementTime: '2024-01-12 09:00', unit: '°C' },
+  { userId: 3, type: '体温', value: '36.6', measurementTime: '2024-01-18 09:30', unit: '°C' },
+  { userId: 3, type: '血糖', value: '5.6', measurementTime: '2024-01-12 07:10', unit: 'mmol/L' },
+  { userId: 3, type: '血糖', value: '5.9', measurementTime: '2024-01-18 12:20', unit: 'mmol/L' },
+  { userId: 3, type: '血压', value: '130/85', measurementTime: '2024-01-12 08:00', unit: 'mmHg' },
+  { userId: 3, type: '血压', value: '128/82', measurementTime: '2024-01-18 08:00', unit: 'mmHg' },
+  { userId: 3, type: '睡眠', value: '6.5', measurementTime: '2024-01-11 23:00-06:00', unit: '小时' },
+  { userId: 3, type: '睡眠', value: '6.8', measurementTime: '2024-01-17 23:30-06:20', unit: '小时' },
+  { userId: 3, type: '压力', value: '3', measurementTime: '2024-01-12 18:00', unit: '' },
+  { userId: 3, type: '压力', value: '2', measurementTime: '2024-01-18 18:30', unit: '' }
 ];
 
 // 健康数据管理类

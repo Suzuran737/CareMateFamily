@@ -10,6 +10,7 @@
     "pages/ServiceItemDetailPage",
     "pages/ServiceReservationPage",
     "pages/ServiceOrderDetailPage",
+    "pages/HealthDetailPage",
     "pages/HealthEduDetailPage",
     "pages/LoginPage",
     "pages/AdmissionRecordsPage",
