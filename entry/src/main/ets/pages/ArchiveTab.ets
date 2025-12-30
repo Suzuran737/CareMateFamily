@@ -26,7 +26,7 @@ struct UserCard {
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
         }
-        .width('20%')
+        .width('25%')
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
 
@@ -52,7 +52,7 @@ struct UserCard {
           this.buildInfoRow('生日', this.user.birthday)
           this.buildInfoRow('身份证', this.user.idCard)
         }
-        .width('80%')
+        .width('75%')
       }
       .padding(16)
     }

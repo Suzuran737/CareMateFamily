@@ -5,6 +5,9 @@
   "main": "",
   "author": "",
   "license": "",
-  "dependencies": {}
+  "dependencies": {
+    "@ohos/mpchart": "^3.0.26"
+  },
+  "devDependencies": {},
+  "dynamicDependencies": {}
 }
-

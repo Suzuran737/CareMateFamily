@@ -27,19 +27,57 @@ export const USERS: User[] = [
 // 模拟健康数据
 export const MOCK_HEALTH_DATA: HealthData[] = [
   // 张三的数据
+  { userId: 1, type: '心率', value: '65', measurementTime: '2024-01-10 07:30', unit: '次/分' },
+  { userId: 1, type: '心率', value: '72', measurementTime: '2024-01-10 12:00', unit: '次/分' },
+  { userId: 1, type: '心率', value: '70', measurementTime: '2024-01-10 18:45', unit: '次/分' },
+  { userId: 1, type: '心率', value: '68', measurementTime: '2024-01-15 07:45', unit: '次/分' },
   { userId: 1, type: '心率', value: '72', measurementTime: '2024-01-15 08:30', unit: '次/分' },
   { userId: 1, type: '心率', value: '75', measurementTime: '2024-01-15 12:45', unit: '次/分' },
-  { userId: 1, type: '血氧', value: '98%', measurementTime: '2024-01-15 09:00', unit: '%' },
+  { userId: 1, type: '心率', value: '73', measurementTime: '2024-01-15 19:20', unit: '次/分' },
+  { userId: 1, type: '心率', value: '71', measurementTime: '2024-01-20 08:15', unit: '次/分' },
+
+  { userId: 1, type: '血氧', value: '97%', measurementTime: '2024-01-10 08:00', unit: '' },
+  { userId: 1, type: '血氧', value: '98%', measurementTime: '2024-01-15 09:00', unit: '' },
+  { userId: 1, type: '血氧', value: '96%', measurementTime: '2024-01-15 17:30', unit: '' },
+  { userId: 1, type: '血氧', value: '98%', measurementTime: '2024-01-20 07:45', unit: '' },
+  { userId: 1, type: '血氧', value: '97%', measurementTime: '2024-01-20 22:10', unit: '' },
+
+  { userId: 1, type: '体温', value: '36.4', measurementTime: '2024-01-10 08:30', unit: '°C' },
+  { userId: 1, type: '体温', value: '36.6', measurementTime: '2024-01-10 16:45', unit: '°C' },
   { userId: 1, type: '体温', value: '36.5', measurementTime: '2024-01-15 10:15', unit: '°C' },
+  { userId: 1, type: '体温', value: '36.7', measurementTime: '2024-01-15 20:00', unit: '°C' },
+  { userId: 1, type: '体温', value: '36.3', measurementTime: '2024-01-20 09:00', unit: '°C' },
+  { userId: 1, type: '体温', value: '36.8', measurementTime: '2024-01-20 18:30', unit: '°C' },
+
+  { userId: 1, type: '血糖', value: '5.0', measurementTime: '2024-01-10 06:45', unit: 'mmol/L' },
+  { userId: 1, type: '血糖', value: '6.1', measurementTime: '2024-01-10 12:30', unit: 'mmol/L' },
+  { userId: 1, type: '血糖', value: '5.8', measurementTime: '2024-01-10 19:15', unit: 'mmol/L' },
   { userId: 1, type: '血糖', value: '5.2', measurementTime: '2024-01-15 07:00', unit: 'mmol/L' },
+  { userId: 1, type: '血糖', value: '5.9', measurementTime: '2024-01-15 13:00', unit: 'mmol/L' },
+  { userId: 1, type: '血糖', value: '5.3', measurementTime: '2024-01-15 20:30', unit: 'mmol/L' },
+  { userId: 1, type: '血糖', value: '5.1', measurementTime: '2024-01-20 07:15', unit: 'mmol/L' },
+  { userId: 1, type: '血糖', value: '6.0', measurementTime: '2024-01-20 12:45', unit: 'mmol/L' },
+  { userId: 1, type: '血糖', value: '5.4', measurementTime: '2024-01-20 19:00', unit: 'mmol/L' },
+
+  { userId: 1, type: '血压', value: '118/78', measurementTime: '2024-01-10 07:00', unit: 'mmHg' },
+  { userId: 1, type: '血压', value: '122/82', measurementTime: '2024-01-10 14:30', unit: 'mmHg' },
   { userId: 1, type: '血压', value: '120/80', measurementTime: '2024-01-15 08:00', unit: 'mmHg' },
-  { userId: 1, type: '睡眠', value: '7.5', measurementTime: '2024-01-14 22:00-06:30', unit: '小时' },
+  { userId: 1, type: '血压', value: '125/83', measurementTime: '2024-01-15 16:00', unit: 'mmHg' },
+  { userId: 1, type: '血压', value: '119/79', measurementTime: '2024-01-20 08:30', unit: 'mmHg' },
+  { userId: 1, type: '血压', value: '121/81', measurementTime: '2024-01-20 17:45', unit: 'mmHg' },
+
+  { userId: 1, type: '睡眠', value: '6.8', measurementTime: '2024-01-09 23:15-06:00', unit: '小时' },
+  { userId: 1, type: '睡眠', value: '7.2', measurementTime: '2024-01-14 22:00-06:30', unit: '小时' },
+  { userId: 1, type: '睡眠', value: '8.1', measurementTime: '2024-01-19 22:30-06:45', unit: '小时' },
+
+  { userId: 1, type: '体脂', value: '18.8', measurementTime: '2024-01-09 18:30', unit: '%' },
   { userId: 1, type: '体脂', value: '18.5', measurementTime: '2024-01-14 19:00', unit: '%' },
+  { userId: 1, type: '体脂', value: '18.2', measurementTime: '2024-01-19 20:15', unit: '%' },
 
   // 李四的数据
   { userId: 2, type: '心率', value: '68', measurementTime: '2024-01-15 09:00', unit: '次/分' },
   { userId: 2, type: '心率', value: '70', measurementTime: '2024-01-15 14:20', unit: '次/分' },
-  { userId: 2, type: '血氧', value: '99%', measurementTime: '2024-01-15 10:00', unit: '%' },
+  { userId: 2, type: '血氧', value: '99%', measurementTime: '2024-01-15 10:00', unit: '' },
   { userId: 2, type: '体温', value: '36.7', measurementTime: '2024-01-15 11:30', unit: '°C' },
   { userId: 2, type: '血糖', value: '4.8', measurementTime: '2024-01-15 07:30', unit: 'mmol/L' },
   { userId: 2, type: '血压', value: '118/76', measurementTime: '2024-01-15 09:00', unit: 'mmHg' },
