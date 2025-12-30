@@ -112,24 +112,32 @@ export class ReservationStoreManager {
   }
 
   // 保存预约订单
-  public async saveReservation(record: ReservationRecord): Promise<void> {
+  public async saveReservation(userName: string, record: ReservationRecord): Promise<void> {
     if (!this.kvStore) {
       throw new Error('KvStore is not initialized.');
     }
 
-    const key = `${TABLE_PREFIX}_${record.id}`;
+    // const key = `${TABLE_PREFIX}_${record.id}`; // 旧逻辑：未区分登录用户
+    if (!userName) {
+      throw new Error('User name is required.');
+    }
+    const key = `${TABLE_PREFIX}_${userName}_${record.id}`;
     const value = JSON.stringify(record);
 
     await this.kvStore.put(key, value);
   }
 
   // 读取已保存的预约订单
-  public async getReservations(): Promise<ReservationRecord[]> {
+  public async getReservations(userName: string): Promise<ReservationRecord[]> {
     if (!this.kvStore) {
       throw new Error('KvStore is not initialized.');
     }
 
-    const entries = await this.kvStore.getEntries(TABLE_PREFIX);
+    // const entries = await this.kvStore.getEntries(TABLE_PREFIX); // 旧逻辑：读取全部用户订单
+    if (!userName) {
+      throw new Error('User name is required.');
+    }
+    const entries = await this.kvStore.getEntries(`${TABLE_PREFIX}_${userName}`);
     const decoder = new util.TextDecoder('utf-8');
 
     // 兼容多种value类型的解码
@@ -161,12 +169,16 @@ export class ReservationStoreManager {
   }
 
   // 清空已保存的预约订单
-  public async clearReservations(): Promise<void> {
+  public async clearReservations(userName: string): Promise<void> {
     if (!this.kvStore) {
       throw new Error('KvStore is not initialized.');
     }
 
-    const entries: distributedKVStore.Entry[] = await this.kvStore.getEntries(TABLE_PREFIX);
+    // const entries: distributedKVStore.Entry[] = await this.kvStore.getEntries(TABLE_PREFIX); // 旧逻辑：清空全部用户订单
+    if (!userName) {
+      throw new Error('User name is required.');
+    }
+    const entries: distributedKVStore.Entry[] = await this.kvStore.getEntries(`${TABLE_PREFIX}_${userName}`);
     const keys: string[] = [];
     for (let i: number = 0; i < entries.length; i++) {
       keys.push(entries[i].key);

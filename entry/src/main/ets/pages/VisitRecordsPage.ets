@@ -213,6 +213,7 @@ export default struct VisitRecordsPage {
   }
 
   private onRefreshKeyChanged(): void {
+    // 支付完成时通过 AppStorage 通知刷新
     this.loadOrders();
   }
 

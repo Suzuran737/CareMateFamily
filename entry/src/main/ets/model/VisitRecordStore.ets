@@ -36,6 +36,7 @@ export function getDefaultVisitRecord(): OrderInfo {
 
 // 根据订单 ID 获取单条记录
 export function getVisitRecordById(id: string): OrderInfo | null {
+  // 通过 ID 查找订单，用于详情页/支付页同步状态
   ensureInit();
   for (let i: number = 0; i < visitRecordCache.length; i++) {
     if (visitRecordCache[i].id === id) {

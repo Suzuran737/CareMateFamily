@@ -11,9 +11,9 @@ const STATIC_SERVICE_ORDER: ReservationRecord = {
   orderNo: 'kh_171013049489',
   price: 36,
   serviceUser: '王国栋',
-  nurseName: '陈婷',
+  nurseName: '李梅',
   serviceTime: '2025-01-01 09:00',
-  contactName: '陈婷',
+  contactName: '李梅',
   contactPhone: '18800000000',
   address: '北京',
   remark: ''
@@ -141,9 +141,17 @@ export default struct ServiceOrdersPage {
 
   // 从 KvStore 读取订单
   private loadOrders(): void {
+    // 未登录时仅展示静态示例
+    const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
+    const ownerName: string = AppStorage.get<string>('userName') || '';
+    if (!isLogin || !ownerName || ownerName === '未登录') {
+      this.orderList = [STATIC_SERVICE_ORDER];
+      return;
+    }
     ReservationStoreManager.getInstance()
       .initKvStore(this.context)
-      .then(() => ReservationStoreManager.getInstance().getReservations())
+      // .then(() => ReservationStoreManager.getInstance().getReservations()) // 旧逻辑：读取全部用户订单
+      .then(() => ReservationStoreManager.getInstance().getReservations(ownerName))
       .then((list: ReservationRecord[]) => {
         this.orderList = [STATIC_SERVICE_ORDER].concat(list);
       })

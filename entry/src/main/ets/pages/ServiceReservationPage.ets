@@ -3,11 +3,16 @@ import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
 import type common from '@ohos.app.ability.common';
 import { ReservationStoreManager, type ReservationRecord } from '../utils/ReservationStoreManager';
+import { CareUserStoreManager, CareUserRecord } from '../utils/CareUserStoreManager';
 import { getDefaultServiceDetail, getServiceDetailById, loadServiceCatalog, type ServiceDetail } from '../model/ServiceCatalog';
 
 
-interface SelectOption {
+class SelectOption {
   value: string;
+
+  constructor(value: string) {
+    this.value = value;
+  }
 }
 
 interface ServiceReservationRouteParams {
@@ -20,21 +25,17 @@ export default struct ServiceReservationPage {
   private context: common.UIAbilityContext = getContext() as common.UIAbilityContext;
   @State detail: ServiceDetail = getDefaultServiceDetail();
 
-  // 下拉选项示例：康养用户 / 看护 / 时间
-  private userOptions: SelectOption[] = [
-    { value: '张三（父亲）' },
-    { value: '李四（母亲）' },
-    { value: '王五（爷爷）' }
-  ];
+  // 下拉选项：康养用户 / 看护 / 时间
+  @State private userOptions: SelectOption[] = [];
   private nurseOptions: SelectOption[] = [
-    { value: '护工-小王' },
-    { value: '护工-小李' },
-    { value: '护工-小陈' }
+    new SelectOption('李梅'),
+    new SelectOption('张三'),
+    new SelectOption('陈芳')
   ];
   private timeOptions: SelectOption[] = [
-    { value: '2025-12-01 09:00' },
-    { value: '2025-12-01 14:00' },
-    { value: '2025-12-02 09:00' }
+    new SelectOption('2025-12-01 09:00'),
+    new SelectOption('2025-12-01 14:00'),
+    new SelectOption('2025-12-02 09:00')
   ];
   // 选中索引（-1 表示未选择）
   @State selectedUserIndex: number = -1;
@@ -64,6 +65,42 @@ export default struct ServiceReservationPage {
       .catch((err: Error) => {
         console.error('预约服务加载失败:', err);
         this.detail = getDefaultServiceDetail();
+      });
+
+    this.loadCareUsers();
+  }
+
+  onPageShow(): void {
+    // 返回页面时刷新康养用户列表
+    this.loadCareUsers();
+  }
+
+  private loadCareUsers(): void {
+    // 仅加载当前登录用户的康养用户列表
+    const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
+    const ownerName: string = AppStorage.get<string>('userName') || '';
+    if (!isLogin || !ownerName || ownerName === '未登录') {
+      this.userOptions = [];
+      this.selectedUserIndex = -1;
+      return;
+    }
+    CareUserStoreManager.getInstance().initKvStore(this.context)
+      .then(() => CareUserStoreManager.getInstance().getUsers(ownerName))
+      .then((list: CareUserRecord[]) => {
+        // 将康养用户转换为下拉选项
+        this.userOptions = list.map((item: CareUserRecord) => {
+          return new SelectOption(`${item.name}`);
+        });
+        if (this.userOptions.length === 0) {
+          this.selectedUserIndex = -1;
+        } else if (this.selectedUserIndex >= this.userOptions.length) {
+          this.selectedUserIndex = -1;
+        }
+      })
+      .catch((err: Error) => {
+        console.error('读取康养用户失败:', err);
+        this.userOptions = [];
+        this.selectedUserIndex = -1;
       });
   }
 
@@ -517,7 +554,14 @@ export default struct ServiceReservationPage {
                 return;
               }
 
-              // 保存预约订单到本地KvStore
+              // 保存预约订单到本地KvStore（按登录用户前缀区分）
+              const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
+              const ownerName: string = AppStorage.get<string>('userName') || '';
+              if (!isLogin || !ownerName || ownerName === '未登录') {
+                // 未登录不允许下单
+                showValidation('请先登录后再下单');
+                return;
+              }
               const now: number = Date.now();
               const record: ReservationRecord = {
                 id: `${now}`,
@@ -536,7 +580,8 @@ export default struct ServiceReservationPage {
               };
 
               ReservationStoreManager.getInstance().initKvStore(this.context)
-                .then(() => ReservationStoreManager.getInstance().saveReservation(record))
+                // .then(() => ReservationStoreManager.getInstance().saveReservation(record)) // 旧逻辑：未区分登录用户
+                .then(() => ReservationStoreManager.getInstance().saveReservation(ownerName, record))
                 .then(() => {
                   // 弹出确认框提示保存成功
                   promptAction.showDialog({
@@ -564,8 +609,24 @@ export default struct ServiceReservationPage {
             .borderRadius($r('app.float.service_button_border_radius'))
             .margin({ top: 12 })
             .onClick(() => {
+              const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
+              const ownerName: string = AppStorage.get<string>('userName') || '';
+              if (!isLogin || !ownerName || ownerName === '未登录') {
+                // 未登录不允许清空订单
+                promptAction.showDialog({
+                  message: '请先登录后再清空订单',
+                  buttons: [
+                    {
+                      text: '确认',
+                      color: '#07C6A5'
+                    }
+                  ]
+                });
+                return;
+              }
               ReservationStoreManager.getInstance().initKvStore(this.context)
-                .then(() => ReservationStoreManager.getInstance().clearReservations())
+                // .then(() => ReservationStoreManager.getInstance().clearReservations()) // 旧逻辑：清空全部用户订单
+                .then(() => ReservationStoreManager.getInstance().clearReservations(ownerName))
                 .then(() => {
                   promptAction.showDialog({
                     message: '已清空已保存订单',

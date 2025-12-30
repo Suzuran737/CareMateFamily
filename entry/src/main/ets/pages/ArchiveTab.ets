@@ -185,16 +185,16 @@ export default struct ArchiveTab {
           .fontColor(Color.White)
           .onClick(() => this.onAdd())
 
-        Button('清空档案')
-          .layoutWeight(1)
-          .height(44)
-          .backgroundColor('#FFFFFF')
-          .fontColor('#07C6A5')
-          .borderWidth(1)
-          .borderColor('#07C6A5')
-          .borderRadius(6)
-          .margin({ left: 12 })
-          .onClick(() => this.onClearUsers())
+        // Button('清空档案')
+        //   .layoutWeight(1)
+        //   .height(44)
+        //   .backgroundColor('#FFFFFF')
+        //   .fontColor('#07C6A5')
+        //   .borderWidth(1)
+        //   .borderColor('#07C6A5')
+        //   .borderRadius(6)
+        //   .margin({ left: 12 })
+        //   .onClick(() => this.onClearUsers())
       }
       .width('95%')
       .margin({ bottom: 12 })
@@ -206,6 +206,7 @@ export default struct ArchiveTab {
   private onAdd(): void {
     const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
     if (!isLogin) {
+      // 未登录时禁止进入新增页
       promptAction.showDialog({
         message: '请先登录后再添加档案',
         buttons: [{ text: '确认', color: '#07C6A5' }]
@@ -219,6 +220,7 @@ export default struct ArchiveTab {
     const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
     const ownerName: string = AppStorage.get<string>('userName') || '';
     if (!isLogin || !ownerName || ownerName === '未登录') {
+      // 未登录不允许清空，避免误操作
       promptAction.showDialog({
         message: '请先登录后再清空档案',
         buttons: [{ text: '确认', color: '#07C6A5' }]
@@ -246,6 +248,7 @@ export default struct ArchiveTab {
   }
 
   private loadUsers(): void {
+    // 仅加载当前登录用户的档案数据
     const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
     const ownerName: string = AppStorage.get<string>('userName') || '';
     if (!isLogin || !ownerName || ownerName === '未登录') {
