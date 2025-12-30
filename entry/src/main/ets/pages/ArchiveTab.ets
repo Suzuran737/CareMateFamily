@@ -4,18 +4,6 @@ import promptAction from '@ohos.promptAction';
 import type common from '@ohos.app.ability.common';
 import { CareUserStoreManager, CareUserRecord } from '../utils/CareUserStoreManager';
 
-const STATIC_USER: CareUserRecord = new CareUserRecord(
-  'static_user_1',
-  0,
-  '张三',
-  '男',
-  '父亲',
-  '1950-01-01',
-  '110101195001010011',
-  '退休',
-  '上海'
-);
-
 @Component
 struct UserCard {
   // 使用@Prop装饰器实现卡片复用
@@ -84,9 +72,10 @@ struct UserCard {
       }
       .padding(16)
     }
+    .backgroundColor('#EEEEEE')
     .borderWidth($r('app.float.home_health_card_border_width'))
     .borderColor(0x28000000)
-    .borderRadius($r('app.float.home_health_card_radius'))
+    .borderRadius(8)
     .clip(true)
     .margin({
       left: $r('app.float.home_health_card_horizontal_margin'),
@@ -127,7 +116,10 @@ struct UserCard {
 export default struct ArchiveTab {
   private context: common.UIAbilityContext = getContext() as common.UIAbilityContext;
   @StorageLink('careUserRefresh') @Watch('onRefreshKeyChanged') refreshKey: number = 0;
-  @State users: CareUserRecord[] = [STATIC_USER]; // 用户数据数组
+  // 登录状态或用户名变化时刷新列表
+  @StorageLink('isLogin') @Watch('onLoginStateChanged') private isLogin: boolean = false;
+  @StorageLink('userName') @Watch('onLoginUserChanged') private currentUserName: string = '未登录';
+  @State users: CareUserRecord[] = []; // 用户数据数组
 
   aboutToAppear(): void {
     this.loadUsers();
@@ -138,6 +130,14 @@ export default struct ArchiveTab {
   }
 
   private onRefreshKeyChanged(): void {
+    this.loadUsers();
+  }
+
+  private onLoginStateChanged(): void {
+    this.loadUsers();
+  }
+
+  private onLoginUserChanged(): void {
     this.loadUsers();
   }
 
@@ -204,7 +204,6 @@ export default struct ArchiveTab {
           .width('100%')
         }
         .width('100%')
-        .backgroundColor('#EEEEEE')
         .scrollBar(BarState.Off)
       }
       .width('100%')
@@ -240,14 +239,42 @@ export default struct ArchiveTab {
   }
 
   private onAdd(): void {
+    const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
+    if (!isLogin) {
+      promptAction.showDialog({
+        message: '请先登录后再添加档案',
+        buttons: [
+          {
+            text: '确认',
+            color: '#07C6A5'
+          }
+        ]
+      });
+      return;
+    }
     router.pushUrl({ url: 'pages/AddCareUserPage' });
   }
 
   private onClearUsers(): void {
+    const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
+    const ownerName: string = AppStorage.get<string>('userName') || '';
+    if (!isLogin || !ownerName || ownerName === '未登录') {
+      promptAction.showDialog({
+        message: '请先登录后再清空档案',
+        buttons: [
+          {
+            text: '确认',
+            color: '#07C6A5'
+          }
+        ]
+      });
+      return;
+    }
     CareUserStoreManager.getInstance().initKvStore(this.context)
-      .then(() => CareUserStoreManager.getInstance().clearUsers())
+      // .then(() => CareUserStoreManager.getInstance().clearUsers()) // 旧逻辑：清空所有用户
+      .then(() => CareUserStoreManager.getInstance().clearUsers(ownerName))
       .then(() => {
-        this.users = [STATIC_USER];
+        this.users = [];
         promptAction.showDialog({
           message: '已清空康养用户档案',
           buttons: [
@@ -274,14 +301,21 @@ export default struct ArchiveTab {
 
   // 从 KvStore 读取康养用户数据
   private loadUsers(): void {
+    const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
+    const ownerName: string = AppStorage.get<string>('userName') || '';
+    if (!isLogin || !ownerName || ownerName === '未登录') {
+      this.users = [];
+      return;
+    }
     CareUserStoreManager.getInstance().initKvStore(this.context)
-      .then(() => CareUserStoreManager.getInstance().getUsers())
+      // .then(() => CareUserStoreManager.getInstance().getUsers()) // 旧逻辑：读取所有用户
+      .then(() => CareUserStoreManager.getInstance().getUsers(ownerName))
       .then((list: CareUserRecord[]) => {
-        this.users = [STATIC_USER].concat(list);
+        this.users = list;
       })
       .catch((err: Error) => {
         console.error('读取康养用户失败:', err);
-        this.users = [STATIC_USER];
+        this.users = [];
       });
   }
 }

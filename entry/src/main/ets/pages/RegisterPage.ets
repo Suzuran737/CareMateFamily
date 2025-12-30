@@ -1,10 +1,14 @@
 // RegisterPage.ets - 注册页面
 import router from '@ohos.router';
+import promptAction from '@ohos.promptAction';
+import type common from '@ohos.app.ability.common';
 import { CaptchaCanvas } from '../components/CaptchaCanvas';
+import { UserStoreManager, UserRecord } from '../utils/UserStoreManager';
 
 @Entry
 @Component
 struct RegisterPage {
+  private context: common.UIAbilityContext = getContext() as common.UIAbilityContext;
   @State username: string = '';
   @State phoneNumber: string = '';
   @State password: string = '';
@@ -216,10 +220,48 @@ struct RegisterPage {
                 this.captchaErrorText = '';
               }
 
-              // 注册成功
-              AppStorage.setOrCreate('tempRegisteredName', this.username);
-              AppStorage.setOrCreate('tempRegisteredPhone', this.phoneNumber);
-              this.navigateTo('LoginPage');
+              const showRegisterError = (message: string): void => {
+                promptAction.showDialog({
+                  message: message,
+                  buttons: [
+                    {
+                      text: '确认',
+                      color: '#07C6A5'
+                    }
+                  ]
+                });
+              };
+
+              const userNameValue: string = this.username.trim();
+              if (!userNameValue) {
+                showRegisterError('请输入用户名');
+                return;
+              }
+
+              const record = new UserRecord(
+                userNameValue,
+                this.phoneNumber.trim(),
+                this.password,
+                Date.now()
+              );
+
+              UserStoreManager.getInstance().initKvStore(this.context)
+                .then(() => UserStoreManager.getInstance().getUserByName(userNameValue))
+                .then((exist: UserRecord | null) => {
+                  if (exist) {
+                    showRegisterError('用户名已存在');
+                    return;
+                  }
+                  return UserStoreManager.getInstance().saveUser(record)
+                    .then(() => {
+                      // AppStorage.setOrCreate('tempRegisteredName', this.username); // 旧逻辑：临时保存注册信息
+                      // AppStorage.setOrCreate('tempRegisteredPhone', this.phoneNumber); // 旧逻辑：临时保存注册信息
+                      this.navigateTo('LoginPage');
+                    });
+                })
+                .catch((err: Error) => {
+                  console.error('注册失败:', err);
+                });
             })
 
           Blank().height(40)
@@ -227,7 +269,6 @@ struct RegisterPage {
         .width('100%')
         .alignItems(HorizontalAlign.Center)
       }
-      .layoutWeight(1)
     }
     .width('100%')
     .height('100%')

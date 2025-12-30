@@ -174,6 +174,13 @@ export default struct AddCareUserPage {
             }
 
             // 保存到 KvStore 后返回上一页
+            const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
+            const ownerName: string = AppStorage.get<string>('userName') || '';
+            if (!isLogin || !ownerName || ownerName === '未登录') {
+              showValidation('请先登录后再添加档案');
+              return;
+            }
+
             const now: number = Date.now();
             const record = new CareUserRecord(
               `care_user_${now}`,
@@ -187,7 +194,8 @@ export default struct AddCareUserPage {
               this.address
             );
             CareUserStoreManager.getInstance().initKvStore(this.context)
-              .then(() => CareUserStoreManager.getInstance().saveUser(record))
+              // .then(() => CareUserStoreManager.getInstance().saveUser(record)) // 旧逻辑：未区分登录用户
+              .then(() => CareUserStoreManager.getInstance().saveUser(ownerName, record))
               .then(() => {
                 AppStorage.setOrCreate('careUserRefresh', Date.now());
                 router.back();

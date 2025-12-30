@@ -1,11 +1,15 @@
 // LoginPage.ets - 登录页面
 import router from '@ohos.router';
+import promptAction from '@ohos.promptAction';
+import type common from '@ohos.app.ability.common';
 import { CaptchaCanvas } from '../components/CaptchaCanvas';
+import { UserStoreManager, UserRecord } from '../utils/UserStoreManager';
 
 @Entry
 @Component
 struct LoginPage {
-  @State phoneNumber: string = '';
+  private context: common.UIAbilityContext = getContext() as common.UIAbilityContext;
+  @State loginUserName: string = '';
   @State password: string = '';
   @State verificationCode: string = '';
 
@@ -52,8 +56,8 @@ struct LoginPage {
         .padding({ left: 12, right: 12 })
         .maxLength(needCaptcha ? 4 : undefined)
         .onChange((value: string) => {
-          if (placeholder.includes('手机号')) {
-            this.phoneNumber = value;
+          if (placeholder.includes('用户名')) {
+            this.loginUserName = value;
           } else if (placeholder.includes('密码')) {
             this.password = value;
           } else if (placeholder.includes('验证码')) {
@@ -144,8 +148,8 @@ struct LoginPage {
           .width('90%')
           .margin({ bottom: 20 })
 
-          // 手机号输入框
-          this.InputField($r('app.media.ic_phone'), '请输入手机号码')
+          // 用户名输入框
+          this.InputField($r('app.media.ic_user'), '请输入用户名')
 
           // 密码输入框
           this.InputField($r('app.media.ic_lock'), '密码', true)
@@ -191,14 +195,45 @@ struct LoginPage {
                 return;
               }
 
-              // 2) 通过验证码后再登录
-              const registeredName: string = AppStorage.get<string>('tempRegisteredName') || '测试用户';
+              const showLoginError = (message: string): void => {
+                promptAction.showDialog({
+                  message: message,
+                  buttons: [
+                    {
+                      text: '确认',
+                      color: '#07C6A5'
+                    }
+                  ]
+                });
+              };
 
-              AppStorage.setOrCreate('isLogin', true);
-              AppStorage.setOrCreate('userPhone', this.phoneNumber);
-              AppStorage.setOrCreate('userName', registeredName);
+              const userNameValue: string = this.loginUserName.trim();
+              const passwordValue: string = this.password;
 
-              this.navigateTo('MainTabPage');
+              UserStoreManager.getInstance().initKvStore(this.context)
+                .then(() => UserStoreManager.getInstance().getUserByName(userNameValue))
+                .then((record: UserRecord | null) => {
+                  if (!record) {
+                    showLoginError('用户不存在');
+                    return;
+                  }
+                  if (record.password !== passwordValue) {
+                    showLoginError('密码错误');
+                    return;
+                  }
+
+                  // const registeredName: string = AppStorage.get<string>('tempRegisteredName') || '测试用户'; // 旧逻辑：读取临时注册信息
+
+                  AppStorage.setOrCreate('isLogin', true);
+                  AppStorage.setOrCreate('userPhone', record.phone);
+                  AppStorage.setOrCreate('userName', record.userName);
+
+                  this.navigateTo('MainTabPage');
+                })
+                .catch((err: Error) => {
+                  console.error('登录失败:', err);
+                  showLoginError('登录失败，请重试');
+                });
             })
 
           // 注册入口
@@ -219,7 +254,6 @@ struct LoginPage {
         .width('100%')
         .alignItems(HorizontalAlign.Center)
       }
-      .layoutWeight(1)
     }
     .width('100%')
     .height('100%')

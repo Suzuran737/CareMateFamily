@@ -116,22 +116,30 @@ export class CareUserStoreManager {
     this.kvStore = await manager.getKVStore(STORE_ID, options);
   }
 
-  public async saveUser(record: CareUserRecord): Promise<void> {
+  public async saveUser(userName: string, record: CareUserRecord): Promise<void> {
     if (!this.kvStore) {
       throw new Error('KvStore is not initialized.');
     }
 
-    const key = `${TABLE_PREFIX}_${record.id}`;
+    // const key = `${TABLE_PREFIX}_${record.id}`; // 旧逻辑：未区分登录用户
+    if (!userName) {
+      throw new Error('User name is required.');
+    }
+    const key = `${TABLE_PREFIX}_${userName}_${record.id}`;
     const value = JSON.stringify(record);
     await this.kvStore.put(key, value);
   }
 
-  public async getUsers(): Promise<CareUserRecord[]> {
+  public async getUsers(userName: string): Promise<CareUserRecord[]> {
     if (!this.kvStore) {
       throw new Error('KvStore is not initialized.');
     }
 
-    const entries = await this.kvStore.getEntries(TABLE_PREFIX);
+    // const entries = await this.kvStore.getEntries(TABLE_PREFIX); // 旧逻辑：读取所有用户档案
+    if (!userName) {
+      throw new Error('User name is required.');
+    }
+    const entries = await this.kvStore.getEntries(`${TABLE_PREFIX}_${userName}`);
     const decoder = new util.TextDecoder('utf-8');
 
     const decodeValue = (value: KvValue): string => {
@@ -162,12 +170,16 @@ export class CareUserStoreManager {
   }
 
   // 清空已保存的康养用户
-  public async clearUsers(): Promise<void> {
+  public async clearUsers(userName: string): Promise<void> {
     if (!this.kvStore) {
       throw new Error('KvStore is not initialized.');
     }
 
-    const entries: distributedKVStore.Entry[] = await this.kvStore.getEntries(TABLE_PREFIX);
+    // const entries: distributedKVStore.Entry[] = await this.kvStore.getEntries(TABLE_PREFIX); // 旧逻辑：清空所有用户
+    if (!userName) {
+      throw new Error('User name is required.');
+    }
+    const entries: distributedKVStore.Entry[] = await this.kvStore.getEntries(`${TABLE_PREFIX}_${userName}`);
     const keys: string[] = [];
     for (let i: number = 0; i < entries.length; i++) {
       keys.push(entries[i].key);
