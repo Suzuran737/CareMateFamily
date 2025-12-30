@@ -58,7 +58,19 @@ export class OrderInfo {
   medical_history: string = '';
   allergy_history: string = '';
   diagnosis: string = '';
-  prescription: string = '';
+  prescription: PrescriptionDetail = new PrescriptionDetail();
+}
+//处方药信息
+export class PrescriptionDetail {
+  indexTitle: string = '';
+  type: string = '';
+  spec: string = '';
+  dosage: string = '';
+  frequency: string = '';
+  quantity: string = '';
+  unitPrice: string = '';
+  totalPrice: string = '';
+  usage: string = '';
 }
 //药物信息
 export class MedicineInfo {

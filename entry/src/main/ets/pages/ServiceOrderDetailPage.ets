@@ -67,8 +67,17 @@ export default struct ServiceOrderDetailPage {
       return;
     }
 
+    // 未登录时不读取用户订单
+    const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
+    const ownerName: string = AppStorage.get<string>('userName') || '';
+    if (!isLogin || !ownerName || ownerName === '未登录') {
+      this.setOrder(DEFAULT_ORDER);
+      return;
+    }
+
     ReservationStoreManager.getInstance().initKvStore(this.context)
-      .then(() => ReservationStoreManager.getInstance().getReservations())
+      // .then(() => ReservationStoreManager.getInstance().getReservations()) // 旧逻辑：读取全部用户订单
+      .then(() => ReservationStoreManager.getInstance().getReservations(ownerName))
       .then((list: ReservationRecord[]) => {
         const matched = this.findOrderById(list, targetId);
         this.setOrder(matched ? matched : DEFAULT_ORDER);

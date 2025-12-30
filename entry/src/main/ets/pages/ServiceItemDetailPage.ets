@@ -1,5 +1,6 @@
 // 服务项目详情页
 import router from '@ohos.router';
+import promptAction from '@ohos.promptAction';
 import type common from '@ohos.app.ability.common';
 import { getDefaultServiceDetail, getServiceDetailById, loadServiceCatalog, type FeeItem, type ServiceDetail } from '../model/ServiceCatalog';
 
@@ -317,6 +318,20 @@ export default struct ServiceItemDetailPage {
             .fontSize($r('app.float.service_button_font_size'))
             .borderRadius($r('app.float.service_button_border_radius'))
             .onClick(() => {
+              const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
+              if (!isLogin) {
+                // 未登录时提示并阻止进入预约页
+                promptAction.showDialog({
+                  message: '请先登录后再预约',
+                  buttons: [
+                    {
+                      text: '确认',
+                      color: '#07C6A5'
+                    }
+                  ]
+                });
+                return;
+              }
               router.pushUrl({
                 url: 'pages/ServiceReservationPage',
                 params: {

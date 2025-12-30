@@ -2,9 +2,8 @@ import distributedKVStore from '@ohos.data.distributedKVStore';
 import type common from '@ohos.app.ability.common';
 import util from '@ohos.util';
 
-// 预约订单本地存储的KvStore配置
-const STORE_ID = 'service_reservation_store';
-const TABLE_PREFIX = 'service_reservations';
+const STORE_ID = 'care_user_store';
+const TABLE_PREFIX = 'care_users';
 
 interface ValueWrapper {
   value: string | number | boolean | Uint8Array | ArrayBuffer | ValueWrapper;
@@ -12,83 +11,89 @@ interface ValueWrapper {
 
 type KvValue = string | number | boolean | Uint8Array | ArrayBuffer | ValueWrapper;
 
-// 预约订单数据结构
-export interface ReservationRecord {
+export class CareUserRecord {
   id: string;
   submitTime: number;
-  serviceType: string;
-  status: string;
-  orderNo: string;
-  price: number;
-  serviceUser: string;
-  nurseName: string;
-  serviceTime: string;
-  contactName: string;
-  contactPhone: string;
+  name: string;
+  gender: string;
+  relationship: string;
+  birthday: string;
+  idCard: string;
+  occupation: string;
   address: string;
-  remark: string;
+
+  constructor(
+    id: string,
+    submitTime: number,
+    name: string,
+    gender: string,
+    relationship: string,
+    birthday: string,
+    idCard: string,
+    occupation: string,
+    address: string
+  ) {
+    this.id = id;
+    this.submitTime = submitTime;
+    this.name = name;
+    this.gender = gender;
+    this.relationship = relationship;
+    this.birthday = birthday;
+    this.idCard = idCard;
+    this.occupation = occupation;
+    this.address = address;
+  }
 }
 
-// 读取存量数据时的可选字段结构（用于兼容旧数据）
-interface ReservationRecordRaw {
+interface CareUserRecordRaw {
   id?: string;
   submitTime?: number;
-  serviceType?: string;
-  status?: string;
-  orderNo?: string;
-  price?: number;
-  serviceUser?: string;
-  nurseName?: string;
-  serviceTime?: string;
-  contactName?: string;
-  contactPhone?: string;
+  name?: string;
+  gender?: string;
+  relationship?: string;
+  birthday?: string;
+  idCard?: string;
+  occupation?: string;
   address?: string;
-  remark?: string;
 }
 
-// 兼容旧数据，补齐缺失字段
-function normalizeReservationRecord(raw: ReservationRecordRaw): ReservationRecord {
-  const fallbackId: string = raw.id ? raw.id : `${Date.now()}`;
-  const orderNo: string = raw.orderNo ? raw.orderNo : `kh_${fallbackId}`;
-  const serviceType: string = raw.serviceType ? raw.serviceType : '未知服务';
-  const status: string = raw.status ? raw.status : '待服务';
-  const price: number = typeof raw.price === 'number' ? raw.price : 0;
+function normalizeCareUserRecord(raw: CareUserRecordRaw): CareUserRecord {
+  const id: string = raw.id ? raw.id : `${Date.now()}`;
   const submitTime: number = typeof raw.submitTime === 'number' ? raw.submitTime : Date.now();
+  const name: string = raw.name ? raw.name : '';
+  const gender: string = raw.gender ? raw.gender : '';
+  const relationship: string = raw.relationship ? raw.relationship : '';
+  const birthday: string = raw.birthday ? raw.birthday : '';
+  const idCard: string = raw.idCard ? raw.idCard : '';
+  const occupation: string = raw.occupation ? raw.occupation : '';
+  const address: string = raw.address ? raw.address : '';
 
-  return {
-    id: fallbackId,
-    submitTime: submitTime,
-    serviceType: serviceType,
-    status: status,
-    orderNo: orderNo,
-    price: price,
-    serviceUser: raw.serviceUser ? raw.serviceUser : '',
-    nurseName: raw.nurseName ? raw.nurseName : '',
-    serviceTime: raw.serviceTime ? raw.serviceTime : '',
-    contactName: raw.contactName ? raw.contactName : '',
-    contactPhone: raw.contactPhone ? raw.contactPhone : '',
-    address: raw.address ? raw.address : '',
-    remark: raw.remark ? raw.remark : ''
-  };
+  return new CareUserRecord(
+    id,
+    submitTime,
+    name,
+    gender,
+    relationship,
+    birthday,
+    idCard,
+    occupation,
+    address
+  );
 }
 
-// 预约订单KvStore封装
-export class ReservationStoreManager {
-  private static instance: ReservationStoreManager | null = null;
-  // 单设备KvStore句柄
+export class CareUserStoreManager {
+  private static instance: CareUserStoreManager | null = null;
   private kvStore: distributedKVStore.SingleKVStore | null = null;
 
   private constructor() {}
 
-  // 获取单例
-  public static getInstance(): ReservationStoreManager {
-    if (!ReservationStoreManager.instance) {
-      ReservationStoreManager.instance = new ReservationStoreManager();
+  public static getInstance(): CareUserStoreManager {
+    if (!CareUserStoreManager.instance) {
+      CareUserStoreManager.instance = new CareUserStoreManager();
     }
-    return ReservationStoreManager.instance;
+    return CareUserStoreManager.instance;
   }
 
-  // 初始化KvStore
   public async initKvStore(context: common.UIAbilityContext): Promise<void> {
     if (this.kvStore) {
       return;
@@ -111,8 +116,7 @@ export class ReservationStoreManager {
     this.kvStore = await manager.getKVStore(STORE_ID, options);
   }
 
-  // 保存预约订单
-  public async saveReservation(userName: string, record: ReservationRecord): Promise<void> {
+  public async saveUser(userName: string, record: CareUserRecord): Promise<void> {
     if (!this.kvStore) {
       throw new Error('KvStore is not initialized.');
     }
@@ -123,24 +127,21 @@ export class ReservationStoreManager {
     }
     const key = `${TABLE_PREFIX}_${userName}_${record.id}`;
     const value = JSON.stringify(record);
-
     await this.kvStore.put(key, value);
   }
 
-  // 读取已保存的预约订单
-  public async getReservations(userName: string): Promise<ReservationRecord[]> {
+  public async getUsers(userName: string): Promise<CareUserRecord[]> {
     if (!this.kvStore) {
       throw new Error('KvStore is not initialized.');
     }
 
-    // const entries = await this.kvStore.getEntries(TABLE_PREFIX); // 旧逻辑：读取全部用户订单
+    // const entries = await this.kvStore.getEntries(TABLE_PREFIX); // 旧逻辑：读取所有用户档案
     if (!userName) {
       throw new Error('User name is required.');
     }
     const entries = await this.kvStore.getEntries(`${TABLE_PREFIX}_${userName}`);
     const decoder = new util.TextDecoder('utf-8');
 
-    // 兼容多种value类型的解码
     const decodeValue = (value: KvValue): string => {
       if (typeof value === 'string') {
         return value;
@@ -163,18 +164,18 @@ export class ReservationStoreManager {
 
     return entries.map((entry: distributedKVStore.Entry) => {
       const jsonString = decodeValue(entry.value as KvValue);
-      const rawRecord = JSON.parse(jsonString) as ReservationRecordRaw;
-      return normalizeReservationRecord(rawRecord);
-    }).sort((a: ReservationRecord, b: ReservationRecord) => b.submitTime - a.submitTime);
+      const rawRecord = JSON.parse(jsonString) as CareUserRecordRaw;
+      return normalizeCareUserRecord(rawRecord);
+    }).sort((a: CareUserRecord, b: CareUserRecord) => b.submitTime - a.submitTime);
   }
 
-  // 清空已保存的预约订单
-  public async clearReservations(userName: string): Promise<void> {
+  // 清空已保存的康养用户
+  public async clearUsers(userName: string): Promise<void> {
     if (!this.kvStore) {
       throw new Error('KvStore is not initialized.');
     }
 
-    // const entries: distributedKVStore.Entry[] = await this.kvStore.getEntries(TABLE_PREFIX); // 旧逻辑：清空全部用户订单
+    // const entries: distributedKVStore.Entry[] = await this.kvStore.getEntries(TABLE_PREFIX); // 旧逻辑：清空所有用户
     if (!userName) {
       throw new Error('User name is required.');
     }

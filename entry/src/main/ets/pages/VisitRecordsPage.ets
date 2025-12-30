@@ -1,283 +1,247 @@
-import { OrderInfo } from '../model/AdmissionRecord';
+// VisitRecordsPage.ets - 问诊记录列表页
+import router from '@ohos.router';
+import { OrderInfo, PrescriptionDetail } from '../model/AdmissionRecord';
+import { getVisitRecordList } from '../model/VisitRecordStore';
+
+// 初始化刷新标记，确保 StorageLink 绑定键存在
+AppStorage.setOrCreate('visitRecordRefresh', 0);
+
+
+/**
+ * 单条问诊记录卡片
+ */
 @Component
 struct OrderCard {
-  // 使用@Prop装饰器实现卡片复用
   @Prop order: OrderInfo;
-  @State private isExpanded: boolean = false;
 
   build() {
-    Column({ space: 8 }) {
-      Column({ space: 6 }) {
-        Row() {
-          Row(){
-            Text(this.order.patient)
-              .fontSize(16)
-              .fontWeight(FontWeight.Bold)
-              .maxLines(1)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-          }
-          .alignSelf(ItemAlign.Start)
+    Column() {
+      // 第一行：患者 + 支付状态
+      Row() {
+        Text(this.order.patient)
+          .fontSize($r('app.float.service_card_title_font_size'))
+          .fontWeight(FontWeight.Medium)
+          .fontColor($r('app.color.service_primary_text_color'))
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-          Row() {
-            Text(this.order.paid ? '已支付' : '未支付')
-              .fontSize(12)
-              .fontColor(this.order.paid ? Color.Blue : Color.Red)
-              .margin({ right: 2 })
-          }
+        Blank().layoutWeight(1)
+
+        Text(this.order.paid ? '已支付' : '未支付')
+          .fontSize($r('app.float.service_body_font_size'))
+          .fontColor(this.order.paid ? $r('app.color.service_secondary_text_color') : 0xFFFF3B30)
+          .borderWidth(1)
+          .borderColor(this.order.paid ? $r('app.color.service_secondary_text_color') : 0xFFFF3B30)
+          .borderRadius(2)
           .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-          .borderRadius(4)
-          .backgroundColor(this.order.paid?'#E6F3FF' : '#FFE6E6') // 浅蓝/浅红背景
-          .alignSelf(ItemAlign.End) // 靠右对齐
-        }
-        .margin({ bottom: 8 })
-
-        this.buildInfoRow('医护名称', this.order.doctor)
-
-        this.buildInfoRow('问诊时间', this.order.time)
-
-        this.buildInfoRow('金额', this.order.amount)
-
-        if(!this.isExpanded){
-          Text('展开喵')
-            .fontSize(12)
-            .fontColor(Color.Grey)
-            .opacity(0.9)
-            .margin({ top: 10, bottom: 10 })
-            .onClick(()=>{
-              this.isExpanded = !this.isExpanded;
-            })
-        }
       }
-      .padding(16)
-      .width('100%')
+      .margin({
+        left: $r('app.float.service_text_left_right_margin'),
+        right: $r('app.float.service_text_left_right_margin'),
+        top: $r('app.float.service_text_bottom_margin'),
+        bottom: $r('app.float.service_item_small_bottom_margin')
+      })
 
-      if (this.isExpanded) {
-        Column({ space: 6 }) {
-          Row() {
-            Text('处方信息')
-              .fontSize(16)
-              .fontWeight(FontWeight.Bold)
-              .maxLines(1)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-          }
-          .margin({ bottom: 8 })
-          .alignSelf(ItemAlign.Start)
+      // 信息行
+      this.InfoRow('医护名称', this.order.doctor)
+      this.InfoRow('问诊时间', this.order.time)
 
-          this.buildInfoRow('主诉', this.order.symptom)
+      // 金额：强调样式
+      Row() {
+        Text('金额')
+          .fontSize($r('app.float.service_body_font_size'))
+          .fontColor($r('app.color.service_secondary_text_color'))
 
-          this.buildInfoRow('病史', this.order.medical_history)
+        Blank().layoutWeight(1)
 
-          this.buildInfoRow('过敏史', this.order.allergy_history)
-
-          this.buildInfoRow('诊断', this.order.diagnosis)
-
-          Text('收起喵')
-            .fontSize(12)
-            .fontColor(Color.Grey)
-            .opacity(0.9)
-            .margin({ top: 5, bottom: 1 })
-            .onClick(()=>{
-              this.isExpanded = !this.isExpanded;
-            })
-        }
-        .padding(16)
+        Text(this.order.amount)
+          .fontSize($r('app.float.service_emphasis_font_size'))
+          .fontWeight(FontWeight.Medium)
+          .fontColor($r('app.color.service_price_text_color'))
       }
+      .margin({
+        left: $r('app.float.service_text_left_right_margin'),
+        right: $r('app.float.service_text_left_right_margin'),
+        top: $r('app.float.service_item_small_bottom_margin'),
+        bottom: $r('app.float.service_text_bottom_margin')
+      })
     }
-    .backgroundColor(0xFFFFFFFF)
-    .borderWidth($r('app.float.home_health_card_border_width'))
-    .borderColor(0x28000000)
-    .borderRadius($r('app.float.home_health_card_radius'))
-    .clip(true)
+    .backgroundColor($r('app.color.service_card_background_color'))
+    .borderRadius($r('app.float.service_card_radius'))
+    .borderWidth($r('app.float.service_card_border_width'))
+    .borderColor($r('app.color.service_card_border_color'))
     .margin({
-      left: $r('app.float.home_health_card_horizontal_margin'),
-      right: $r('app.float.home_health_card_horizontal_margin'),
-      top: $r('app.float.home_health_card_top_margin')
+      left: $r('app.float.service_card_space'),
+      right: $r('app.float.service_card_space'),
+      top: $r('app.float.service_card_space')
     })
   }
 
-  // 构建信息行的私有方法
   @Builder
-  private buildInfoRow(label: string, value: string) {
+  private InfoRow(label: string, value: string): void {
     Row() {
-      // 标签（灰色左对齐）
       Text(label)
-        .fontSize(13)
-        .fontColor('#666666') // 灰色
-        .textAlign(TextAlign.Start)
-        .width('40%')
+        .fontSize($r('app.float.service_body_font_size'))
+        .fontColor($r('app.color.service_secondary_text_color'))
 
-      // 信息（黑色右对齐）
+      Blank().layoutWeight(1)
+
       Text(value)
-        .fontSize(13)
-        .fontColor(Color.Black)
+        .fontSize($r('app.float.service_body_font_size'))
+        .fontColor($r('app.color.service_primary_text_color'))
         .textAlign(TextAlign.End)
-        .width('60%')
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
-    .width('100%')
-    .margin({ bottom: 4,right: 4})
+    .margin({
+      left: $r('app.float.service_text_left_right_margin'),
+      right: $r('app.float.service_text_left_right_margin'),
+      top: $r('app.float.service_item_small_bottom_margin'),
+      bottom: $r('app.float.service_item_small_bottom_margin')
+    })
   }
 }
+
 @Entry
 @Component
-struct VisitRecordsPage {
-  private orders: OrderInfo[] = []; // 用户数据数组
-  aboutToAppear() {
-    // 这里模拟数据，实际应从网络或本地获取
-    this.orders = this.getMockOrders();
+export default struct VisitRecordsPage {
+  @State private orders: OrderInfo[] = [];
+  // 监听支付完成后的刷新信号
+  @StorageLink('visitRecordRefresh') @Watch('onRefreshKeyChanged') private refreshKey: number = 0;
+  // 强制刷新列表的版本号（用于 ForEach key）
+  @State private listVersion: number = 0;
+
+  aboutToAppear(): void {
+    this.loadOrders();
+  }
+
+  onPageShow(): void {
+    this.loadOrders();
+  }
+
+  // 页面内容（结构对齐 ServiceOrdersPage）
+  @Builder
+  private buildVisitRecordsContent(): void {
+    Column() {
+      // 顶部导航栏（统一样式）
+      Row() {
+        Row() {
+          Text('<')
+            .fontSize($r('app.float.common_nav_icon_font_size'))
+            .fontColor($r('app.color.common_nav_text_color'))
+        }
+        .width($r('app.float.common_nav_side_width'))
+        .height($r('app.float.common_nav_height'))
+        .justifyContent(FlexAlign.Center)
+        .alignItems(VerticalAlign.Center)
+        .onClick(() => router.back())
+
+        Text('问诊记录')
+          .fontSize($r('app.float.common_nav_title_font_size'))
+          .fontColor($r('app.color.common_nav_text_color'))
+          .layoutWeight(1)
+          .textAlign(TextAlign.Center)
+
+        Blank().width($r('app.float.common_nav_side_width'))
+      }
+      .height($r('app.float.common_nav_height'))
+      .width('100%')
+
+      // 列表区域
+      Scroll() {
+        Column() {
+          ForEach(
+            this.orders,
+            (order: OrderInfo) => {
+              // 外层包一层 Column 以便加 onClick
+              Column() {
+                OrderCard({ order: order })
+              }
+              .onClick(() => {
+                router.pushUrl({
+                  url: 'pages/VisitRecordDetailPage',
+                  params: { orderId: order.id }
+                });
+              })
+            },
+            // 通过版本号变化触发列表重新渲染
+            (order: OrderInfo) => `${order.id}_${this.listVersion}`
+          )
+
+          Blank().height(16)
+        }
+        .width('100%')
+      }
+      .width('100%')
+    }
+    .width('100%')
+    .height('100%')
   }
 
   build() {
     Column() {
-      Column() {
-        // 1. 顶部标题栏
-        Row() {
-          Text('康养用户列表')
-            .fontSize($r('app.float.home_header_title_font_size'))
-            .fontWeight(FontWeight.Normal)
-            .fontColor(0xFFFFFFFF)
-        }
-        .height($r('app.float.home_header_height'))
-        .margin({bottom : 5})
-        .justifyContent(FlexAlign.Center)
-        .alignItems(VerticalAlign.Center)
-
-        // 2. 问诊记录信息区
-        Scroll() {
-          Column() {
-            Column({ space: 12 }) {
-              // 使用ForEach循环渲染可复用卡片
-              ForEach(this.orders, (order: OrderInfo) => {
-                OrderCard({ order: order })
-              }, (order: OrderInfo) => order.id)
-            }
-            .padding(4)
-            .width('100%')
-
-            Text('没有更多了喵')
-              .fontSize(12)
-              .fontColor(Color.Grey)
-              .opacity(0.9)
-              .margin({ top: 15, bottom: 30 })
-          }
-          .width('100%')
-          .height('100%')
-        }
-        .width('100%')
-        .height('85%')
-        .backgroundColor('#EEEEEE')
-        .scrollBar(BarState.Off)
-        }
-      }
+      this.buildVisitRecordsContent()
     }
-  // VisitRecordsPage.ts 中的模拟数据函数
-  private getMockOrders(): OrderInfo[] {
-    return [
-      {
-        id: 'ORD20231127001',
-        patient: '张三',
-        paid: true,
-        doctor: '王医生',
-        time: '2023-11-27 09:30:00',
-        amount: '¥150.00',
-        symptom: '咳嗽、发热3天，伴有咽痛',
-        medical_history: '无重大病史，有季节性过敏',
-        allergy_history: '青霉素过敏',
-        diagnosis: '急性上呼吸道感染',
-        prescription: '阿莫西林胶囊 0.5g*24片\n用法：一次2片，一日3次'
-      },
-      {
-        id: 'ORD20231127002',
-        patient: '李四',
-        paid: false,
-        doctor: '刘医生',
-        time: '2023-11-27 10:15:00',
-        amount: '¥200.00',
-        symptom: '持续性头痛，伴有恶心',
-        medical_history: '高血压病史5年',
-        allergy_history: '无',
-        diagnosis: '偏头痛急性发作',
-        prescription: '布洛芬缓释胶囊 300mg*20粒\n用法：一次1粒，一日2次'
-      },
-      {
-        id: 'ORD20231127003',
-        patient: '王五',
-        paid: true,
-        doctor: '赵医生',
-        time: '2023-11-27 14:20:00',
-        amount: '¥180.00',
-        symptom: '腰部扭伤，活动受限',
-        medical_history: '腰椎间盘突出病史',
-        allergy_history: '磺胺类药物过敏',
-        diagnosis: '急性腰扭伤',
-        prescription: '外用止痛膏，每日3次\n建议休息，避免重体力劳动'
-      },
-      {
-        id: 'ORD20231127004',
-        patient: '赵六',
-        paid: true,
-        doctor: '孙医生',
-        time: '2023-11-27 16:45:00',
-        amount: '¥120.00',
-        symptom: '胃部不适，反酸烧心',
-        medical_history: '慢性胃炎病史',
-        allergy_history: '无',
-        diagnosis: '慢性胃炎急性发作',
-        prescription: '奥美拉唑肠溶胶囊 20mg*14粒\n用法：一次1粒，一日1次'
-      },
-      {
-        id: 'ORD20231127005',
-        patient: '钱七',
-        paid: false,
-        doctor: '周医生',
-        time: '2023-11-27 18:30:00',
-        amount: '¥250.00',
-        symptom: '手腕关节肿胀疼痛',
-        medical_history: '痛风病史2年',
-        allergy_history: '头孢类药物过敏',
-        diagnosis: '痛风性关节炎',
-        prescription: '秋水仙碱片 0.5mg*20片\n用法：遵医嘱服用'
-      },
-      {
-        id: 'ORD20231127006',
-        patient: '孙八',
-        paid: true,
-        doctor: '吴医生',
-        time: '2023-11-27 19:15:00',
-        amount: '¥300.00',
-        symptom: '失眠，入睡困难',
-        medical_history: '焦虑症病史',
-        allergy_history: '无',
-        diagnosis: '睡眠障碍',
-        prescription: '佐匹克隆片 7.5mg*20片\n用法：睡前1片'
-      },
-      {
-        id: 'ORD20231127007',
-        patient: '周九',
-        paid: true,
-        doctor: '郑医生',
-        time: '2023-11-27 20:45:00',
-        amount: '¥180.00',
-        symptom: '皮肤瘙痒，出现红疹',
-        medical_history: '过敏性体质',
-        allergy_history: '海鲜过敏',
-        diagnosis: '过敏性皮炎',
-        prescription: '氯雷他定片 10mg*6片\n用法：一次1片，一日1次'
-      },
-      {
-        id: 'ORD20231127008',
-        patient: '吴十',
-        paid: false,
-        doctor: '王医生',
-        time: '2023-11-27 21:30:00',
-        amount: '¥220.00',
-        symptom: '膝关节疼痛，上下楼困难',
-        medical_history: '关节炎病史',
-        allergy_history: '无',
-        diagnosis: '骨性关节炎',
-        prescription: '盐酸氨基葡萄糖胶囊 0.75g*42粒\n用法：一次2粒，一日2次'
-      }
-    ];
+    .width('100%')
+    .height('100%')
+    // 渐变背景（与服务订单一致）
+    .linearGradient({
+      angle: 180,
+      colors: [
+        [0xFF2EC7A8, 0.0],
+        [0xFFA0EACD, 0.35],
+        [0xFFF5FFFC, 0.5],
+        [0xFFFFFFFF, 1.0]
+      ]
+    })
+    .expandSafeArea(
+      [SafeAreaType.SYSTEM],
+      [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM]
+    )
+  }
+
+  private loadOrders(): void {
+    const list = getVisitRecordList();
+    const result: OrderInfo[] = [];
+    for (let i: number = 0; i < list.length; i++) {
+      // 拷贝对象，避免引用复用导致 UI 不刷新
+      result.push(this.cloneOrder(list[i]));
+    }
+    this.orders = result;
+    // 更新版本号，触发列表重建
+    this.listVersion = this.listVersion + 1;
+  }
+
+  private onRefreshKeyChanged(): void {
+    // 支付完成时通过 AppStorage 通知刷新
+    this.loadOrders();
+  }
+
+  // 深拷贝处方信息
+  private cloneOrder(source: OrderInfo): OrderInfo {
+    const prescription = new PrescriptionDetail();
+    prescription.indexTitle = source.prescription.indexTitle;
+    prescription.type = source.prescription.type;
+    prescription.spec = source.prescription.spec;
+    prescription.dosage = source.prescription.dosage;
+    prescription.frequency = source.prescription.frequency;
+    prescription.quantity = source.prescription.quantity;
+    prescription.unitPrice = source.prescription.unitPrice;
+    prescription.totalPrice = source.prescription.totalPrice;
+    prescription.usage = source.prescription.usage;
+
+    const order = new OrderInfo();
+    order.id = source.id;
+    order.patient = source.patient;
+    order.paid = source.paid;
+    order.doctor = source.doctor;
+    order.time = source.time;
+    order.amount = source.amount;
+    order.symptom = source.symptom;
+    order.medical_history = source.medical_history;
+    order.allergy_history = source.allergy_history;
+    order.diagnosis = source.diagnosis;
+    order.prescription = prescription;
+    return order;
   }
 }

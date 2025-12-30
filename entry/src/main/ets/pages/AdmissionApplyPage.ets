@@ -1,11 +1,20 @@
 // pages/AdmissionApplyPage.ets
 
-import { AdmissionItem, AdmissionRecord,  ApplyFormData } from '../model/AdmissionRecord';
+import { AdmissionItem, AdmissionRecord, ApplyFormData } from '../model/AdmissionRecord';
 import { KvStoreManager } from '../utils/KvStoreManager';
+import { CareUserStoreManager, CareUserRecord } from '../utils/CareUserStoreManager';
 import promptAction from '@ohos.promptAction';
 import router from '@ohos.router';
 import type common from '@ohos.app.ability.common';
 import { BusinessError } from '@kit.BasicServicesKit';
+
+class SelectOption {
+  value: string;
+
+  constructor(value: string) {
+    this.value = value;
+  }
+}
 
 @Entry
 @Component
@@ -16,6 +25,8 @@ struct AdmissionApplyPage {
   @State showEditForm: boolean = false;
   @State newItem: AdmissionItem = { name: '', org: '', dept: '', room: '', remark: '' };
   @State editingIndex: number = -1; // 正在编辑的项目索引
+  @State private userOptions: SelectOption[] = [];
+  @State private selectedUserIndex: number = -1;
 
   // 使用getContext()获取当前页面的context
   private context: common.UIAbilityContext = getContext() as common.UIAbilityContext;
@@ -43,6 +54,12 @@ struct AdmissionApplyPage {
         duration: 2000
       });
     }
+
+    this.loadCareUsers();
+  }
+
+  onPageShow(): void {
+    this.loadCareUsers();
   }
 
   build() {
@@ -50,23 +67,43 @@ struct AdmissionApplyPage {
       Column() {
         // --- 1. 标题栏 ---
         Row() {
-          Text('入住人员列表')
-            .fontSize(20)
-            .fontWeight(FontWeight.Bold)
-            .width('100%')
-            .padding({ left: 16, top: 16, bottom: 8 })
+          // 左：返回按钮（固定宽度）
+          Row() {
+            Text('‹')
+              .fontSize($r('app.float.common_nav_icon_font_size'))
+              .fontColor($r('app.color.common_nav_text_color'))
+          }
+          .width($r('app.float.common_nav_side_width'))
+          .height($r('app.float.common_nav_height'))
+          .justifyContent(FlexAlign.Center)
+          .alignItems(VerticalAlign.Center)
+          .onClick(() => router.back())
+
+          // 中：标题（占满剩余空间，居中）
+          Text('入住申请')
+            .fontSize($r('app.float.common_nav_title_font_size'))
+            .fontWeight(FontWeight.Normal)
+            .fontColor($r('app.color.common_nav_text_color'))
+            .layoutWeight(1)
+            .textAlign(TextAlign.Center)
+
+          // 右：占位（与左边同宽，保证标题居中）
+          Blank()
+            .width($r('app.float.common_nav_side_width'))
         }
+        .height($r('app.float.common_nav_height'))
         .width('100%')
-        .backgroundColor('#F1F3F5')
+        .alignItems(VerticalAlign.Center)
 
         // --- 2. 列表展示区域 ---
         if (this.items.length === 0) {
           Column() {
-            Image($r('app.media.ic_empty_user'))
-              .width(60)
-              .height(60)
-              .fillColor('#CCCCCC')
-              .margin({ bottom: 10 })
+            Image($r('app.media.ic_user'))
+              .width(100)
+              .height(100)
+              // .fillColor('#CCCCCC')
+              .opacity(0.5)
+              .margin({ top : 50 , bottom: 10 })
             Text('暂无入住人员，请点击下方按钮添加')
               .fontSize(14)
               .fontColor('#999999')
@@ -138,7 +175,7 @@ struct AdmissionApplyPage {
       }
       .width('100%')
       .height('100%')
-      .backgroundColor('#F1F3F5')
+
 
       // --- 3. 底部固定按钮区 ---
       if (!this.showInlineForm && !this.showEditForm) {
@@ -184,11 +221,11 @@ struct AdmissionApplyPage {
             .fontWeight(FontWeight.Bold)
             .margin({ bottom: 20 })
 
-          this.InputBuilder('姓名', '请输入姓名', this.newItem.name, (val) => this.newItem.name = val)
-          this.InputBuilder('机构', '请输入机构名称', this.newItem.org, (val) => this.newItem.org = val)
-          this.InputBuilder('部门', '请输入部门名称', this.newItem.dept, (val) => this.newItem.dept = val)
-          this.InputBuilder('房间', '请输入房间名称', this.newItem.room, (val) => this.newItem.room = val)
-          this.InputBuilder('备注', '请输入备注信息', this.newItem.remark, (val) => this.newItem.remark = val)
+          this.SelectNameRow()
+          this.InputBuilder('机构', '请输入机构名称', this.newItem.org, (val) => this.newItem.org = val, true)
+          this.InputBuilder('部门', '请输入部门名称', this.newItem.dept, (val) => this.newItem.dept = val, true)
+          this.InputBuilder('房间', '请输入房间名称', this.newItem.room, (val) => this.newItem.room = val, false)
+          this.InputBuilder('备注', '请输入备注信息', this.newItem.remark, (val) => this.newItem.remark = val, false)
 
           Row() {
             Button('取消')
@@ -215,13 +252,27 @@ struct AdmissionApplyPage {
         .margin({ bottom: '20%' })
       }
     }
-    .width('100%')
-    .height('100%')
+    .linearGradient({
+      angle: 180,
+      colors: [
+        [0xFF2EC7A8, 0.0],
+        [0xFFA0EACD, 0.35],
+        [0xFFF5FFFC, 0.5],
+        [0xFFFFFFFF, 1.0]
+      ]
+    })
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM]);
   }
 
-  @Builder InputBuilder(label: string, placeholder: string, value: string, onChange: (val: string) => void) {
+  @Builder InputBuilder(label: string, placeholder: string, value: string, onChange: (val: string) => void, required: boolean) {
     Column() {
-      Text(label).fontSize(14).fontColor('#333').margin({ bottom: 6 })
+      Row() {
+        Text(label).fontSize(14).fontColor('#333')
+        if (required) {
+          Text('*').fontSize(14).fontColor(Color.Red).margin({ left: 4 })
+        }
+      }
+      .margin({ bottom: 6 })
       TextInput({ placeholder: placeholder, text: value })
         .height(40)
         .backgroundColor('#F5F7FA')
@@ -233,9 +284,44 @@ struct AdmissionApplyPage {
     .margin({ bottom: 12 })
   }
 
+  @Builder private SelectNameRow() {
+    Column() {
+      Row() {
+        Text('姓名').fontSize(14).fontColor('#333')
+        Text('*').fontSize(14).fontColor(Color.Red).margin({ left: 4 })
+      }
+      .margin({ bottom: 6 })
+
+      Row() {
+        Select(this.userOptions)
+          .selected(this.selectedUserIndex)
+          .value(
+            this.selectedUserIndex >= 0
+              ? this.userOptions[this.selectedUserIndex].value
+              : '请选择姓名'
+          )
+          .font({ size: 14 })
+          .fontColor('#333333')
+          .onSelect((index: number, value: string) => {
+            this.selectedUserIndex = index;
+            this.newItem.name = value;
+          })
+          .width('100%')
+      }
+      .height(40)
+      .backgroundColor('#F5F7FA')
+      .borderRadius(8)
+      .alignItems(VerticalAlign.Center)
+    }
+    .alignItems(HorizontalAlign.Start)
+    .width('100%')
+    .margin({ bottom: 12 })
+  }
+
   // --- 逻辑处理 ---
   onAdd() {
     this.newItem = { name: '', org: '', dept: '', room: '', remark: '' };
+    this.selectedUserIndex = -1;
     this.showInlineForm = true;
     this.showEditForm = false;
     this.editingIndex = -1;
@@ -257,6 +343,7 @@ struct AdmissionApplyPage {
       this.editingIndex = index;
       this.showEditForm = true;
       this.showInlineForm = false;
+      this.syncSelectedUserIndex(this.newItem.name);
     } else {
       promptAction.showToast({ message: '无法找到要编辑的项', duration: 2000 });
     }
@@ -297,18 +384,31 @@ struct AdmissionApplyPage {
     this.showEditForm = false;
     this.editingIndex = -1;
     this.newItem = { name: '', org: '', dept: '', room: '', remark: '' };
+    this.selectedUserIndex = -1;
   }
 
   onFormSubmit() {
-    if (!this.newItem.name.trim()) {
+    const nameValue = this.newItem.name.trim();
+    const orgValue = this.newItem.org.trim();
+    const deptValue = this.newItem.dept.trim();
+
+    if (!nameValue) {
       promptAction.showToast({ message: '姓名不能为空' });
+      return;
+    }
+    if (!orgValue) {
+      promptAction.showToast({ message: '机构不能为空' });
+      return;
+    }
+    if (!deptValue) {
+      promptAction.showToast({ message: '部门不能为空' });
       return;
     }
 
     const processedItem: AdmissionItem = {
-      name: this.newItem.name.trim(),
-      org: this.newItem.org.trim(),
-      dept: this.newItem.dept.trim(),
+      name: nameValue,
+      org: orgValue,
+      dept: deptValue,
       room: this.newItem.room.trim(),
       remark: this.newItem.remark.trim()
     };
@@ -416,5 +516,45 @@ struct AdmissionApplyPage {
         router.back();
       }, 500);
     }
+  }
+
+  private loadCareUsers(): void {
+    const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
+    const ownerName: string = AppStorage.get<string>('userName') || '';
+    if (!isLogin || !ownerName || ownerName === '未登录') {
+      this.userOptions = [];
+      this.selectedUserIndex = -1;
+      return;
+    }
+
+    CareUserStoreManager.getInstance()
+      .initKvStore(this.context)
+      .then(() => CareUserStoreManager.getInstance().getUsers(ownerName))
+      .then((list: CareUserRecord[]) => {
+        this.userOptions = list.map((item: CareUserRecord) => {
+          return new SelectOption(item.name);
+        });
+        this.syncSelectedUserIndex(this.newItem.name);
+      })
+      .catch((err: BusinessError) => {
+        console.error('读取康养用户失败:', err);
+        this.userOptions = [];
+        this.selectedUserIndex = -1;
+      });
+  }
+
+  private syncSelectedUserIndex(name: string): void {
+    if (!name) {
+      this.selectedUserIndex = -1;
+      return;
+    }
+    let matchIndex = -1;
+    for (let i = 0; i < this.userOptions.length; i++) {
+      if (this.userOptions[i].value === name) {
+        matchIndex = i;
+        break;
+      }
+    }
+    this.selectedUserIndex = matchIndex;
   }
 }

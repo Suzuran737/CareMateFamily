@@ -1,19 +1,30 @@
-// RegisterPage.ets - 注册页面 (使用 Text 符号解决返回箭头报错)
+// RegisterPage.ets - 注册页面
 import router from '@ohos.router';
-
-// 注意：以下代码中所有 $r('app.media.xxx') 引用，请确保您的项目 media 目录中包含对应的图片文件，
-// 否则仍然会出现 'Unknown resource name' 错误。
+import promptAction from '@ohos.promptAction';
+import type common from '@ohos.app.ability.common';
+import { CaptchaCanvas } from '../components/CaptchaCanvas';
+import { UserStoreManager, UserRecord } from '../utils/UserStoreManager';
 
 @Entry
 @Component
 struct RegisterPage {
+  private context: common.UIAbilityContext = getContext() as common.UIAbilityContext;
   @State username: string = '';
   @State phoneNumber: string = '';
   @State password: string = '';
   @State confirmPassword: string = '';
   @State verificationCode: string = '';
 
-  private mockCaptcha: string = '6705';
+  // 当前验证码
+  @State captchaCode: string = '';
+  // 页面想强制刷新验证码时：captchaSeed++
+  @State captchaSeed: number = 0;
+  // 验证码错误提示（为空表示不显示）
+  @State captchaErrorText: string = '';
+
+  // ✅ 密码不一致错误提示（为空表示不显示）
+  @State pwdErrorText: string = '';
+
   private mainColor: number = 0xFF2ECFA8;
 
   // InputField 组件定义：使用 ResourceStr | string 类型
@@ -21,7 +32,7 @@ struct RegisterPage {
   InputField(icon: ResourceStr | string, placeholder: string, isPassword: boolean = false, needCaptcha: boolean = false) {
     Row() {
       // 左侧图标
-      Image(icon) // <--- 确保 icon 传入的是 $r('app.media.xxx')
+      Image(icon)
         .width(20)
         .height(20)
         .margin({ left: 16 })
@@ -36,26 +47,43 @@ struct RegisterPage {
         .fontSize(16)
         .padding({ left: 12, right: 12 })
         .maxLength(needCaptcha ? 4 : undefined)
-        .onChange((value) => {
-          if (placeholder.includes('用户名')) this.username = value;
-          else if (placeholder.includes('手机号')) this.phoneNumber = value;
-          else if (placeholder.includes('密码') && !placeholder.includes('确认')) this.password = value;
-          else if (placeholder.includes('确认密码')) this.confirmPassword = value;
-          else if (placeholder.includes('验证码')) this.verificationCode = value;
+        .onChange((value: string) => {
+          if (placeholder.includes('用户名')) {
+            this.username = value;
+          } else if (placeholder.includes('手机号')) {
+            this.phoneNumber = value;
+          } else if (placeholder.includes('密码') && !placeholder.includes('确认')) {
+            this.password = value;
+            this.pwdErrorText = ''; // 重新输入密码时清除提示
+          } else if (placeholder.includes('确认密码')) {
+            this.confirmPassword = value;
+            this.pwdErrorText = ''; // 重新输入确认密码时清除提示
+          } else if (placeholder.includes('验证码')) {
+            this.verificationCode = value;
+            this.captchaErrorText = ''; // 重新输入验证码时清除提示
+          }
         })
 
-      // 图形验证码 (仅在需要时显示)
+      // 只有验证码时才显示：右侧固定宽度容器
       if (needCaptcha) {
-        Text(this.mockCaptcha)
-          .fontSize(20)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(this.mainColor)
-          // 再次使用 decoration 属性，如果仍报错，请您手动注释掉此行。
-          .decoration({ type: TextDecorationType.LineThrough, color: Color.Red })
-          .margin({ right: 16 })
-          .onClick(() => {
-            console.log('刷新验证码逻辑');
+        // 让验证码和输入框有间距
+        Blank().width(8)
+
+        Row() {
+          CaptchaCanvas({
+            code: $captchaCode,
+            seed: this.captchaSeed,
+            length: 4
           })
+        }
+        .width(118) // 固定右侧区域宽度（110 + 间距）
+        .height(36)
+        .justifyContent(FlexAlign.End)
+        .alignItems(VerticalAlign.Center)
+        .margin({ right: 16 })
+      } else {
+        // 不是验证码行时，保留右侧 padding，让输入框不贴边
+        Blank().width(16)
       }
     }
     .width('90%')
@@ -63,11 +91,24 @@ struct RegisterPage {
     .backgroundColor(0xFFF5F5F5)
     .borderRadius(25)
     .margin({ top: 8, bottom: 8 })
+    .alignItems(VerticalAlign.Center)
+  }
+
+  // 通用的错误提示行（红字）
+  @Builder
+  ErrorTextRow(text: string) {
+    Row() {
+      Text(text)
+        .fontSize(14)
+        .fontColor(0xFFFF3B30)
+    }
+    .width('90%')
+    .padding({ left: 12 })
+    .margin({ top: 4 })
   }
 
   // 路由跳转方法
   navigateTo(page: string) {
-    console.log(`Navigating to ${page}`);
     if (page === 'LoginPage') {
       router.replaceUrl({ url: 'pages/LoginPage' });
     }
@@ -77,7 +118,6 @@ struct RegisterPage {
     Column() {
       // 顶部导航栏
       Row() {
-        // 修正：使用 Text 符号 '<' 模拟返回箭头
         Text('<')
           .fontSize(24)
           .fontColor(0xFFFFFF)
@@ -90,7 +130,7 @@ struct RegisterPage {
           .fontWeight(FontWeight.Medium)
           .layoutWeight(1)
           .textAlign(TextAlign.Center)
-          .margin({ right: 40 }) // 留出左侧 Text 的空间
+          .margin({ right: 40 })
       }
       .width('100%')
       .height(56)
@@ -120,11 +160,26 @@ struct RegisterPage {
           // 3. 密码输入框
           this.InputField($r('app.media.ic_lock'), '密码', true)
 
+          // 密码错误提示（显示在密码框下面）
+          if (this.pwdErrorText.length > 0) {
+            this.ErrorTextRow(this.pwdErrorText)
+          }
+
           // 4. 确认密码输入框
           this.InputField($r('app.media.ic_lock'), '确认密码', true)
 
+          // 密码错误提示（显示在确认密码框下面）
+          if (this.pwdErrorText.length > 0) {
+            this.ErrorTextRow(this.pwdErrorText)
+          }
+
           // 5. 验证码输入框
           this.InputField($r('app.media.ic_code'), '验证码 (有效期限5分钟)', false, true)
+
+          // 验证码错误提示
+          if (this.captchaErrorText.length > 0) {
+            this.ErrorTextRow(this.captchaErrorText)
+          }
 
           // 立即注册按钮
           Button('注册')
@@ -136,13 +191,77 @@ struct RegisterPage {
             .borderRadius(25)
             .margin({ top: 40, bottom: 40 })
             .onClick(() => {
+              // 1) 密码一致性校验（失败则在两个密码框下都显示红字）
               if (this.password !== this.confirmPassword) {
                 console.error('两次密码输入不一致');
+                this.pwdErrorText = '两次密码输入不一致 !';
+                return;
+              } else {
+                this.pwdErrorText = '';
+              }
+
+              // 2) 图形验证码校验（忽略大小写）
+              const inputCode: string = this.verificationCode.trim().toUpperCase();
+              const realCode: string = this.captchaCode.trim().toUpperCase();
+
+              if (inputCode.length === 0) {
+                console.error('请输入验证码');
+                this.captchaErrorText = '请输入验证码 !';
                 return;
               }
-              AppStorage.setOrCreate('tempRegisteredName', this.username);
-              AppStorage.setOrCreate('tempRegisteredPhone', this.phoneNumber);
-              this.navigateTo('LoginPage');
+
+              if (inputCode !== realCode) {
+                console.error('验证码错误');
+                this.captchaErrorText = '验证码输入错误 !';
+                this.verificationCode = '';
+                this.captchaSeed++; // 刷新验证码
+                return;
+              } else {
+                this.captchaErrorText = '';
+              }
+
+              const showRegisterError = (message: string): void => {
+                promptAction.showDialog({
+                  message: message,
+                  buttons: [
+                    {
+                      text: '确认',
+                      color: '#07C6A5'
+                    }
+                  ]
+                });
+              };
+
+              const userNameValue: string = this.username.trim();
+              if (!userNameValue) {
+                showRegisterError('请输入用户名');
+                return;
+              }
+
+              const record = new UserRecord(
+                userNameValue,
+                this.phoneNumber.trim(),
+                this.password,
+                Date.now()
+              );
+
+              UserStoreManager.getInstance().initKvStore(this.context)
+                .then(() => UserStoreManager.getInstance().getUserByName(userNameValue))
+                .then((exist: UserRecord | null) => {
+                  if (exist) {
+                    showRegisterError('用户名已存在');
+                    return;
+                  }
+                  return UserStoreManager.getInstance().saveUser(record)
+                    .then(() => {
+                      // AppStorage.setOrCreate('tempRegisteredName', this.username); // 旧逻辑：临时保存注册信息
+                      // AppStorage.setOrCreate('tempRegisteredPhone', this.phoneNumber); // 旧逻辑：临时保存注册信息
+                      this.navigateTo('LoginPage');
+                    });
+                })
+                .catch((err: Error) => {
+                  console.error('注册失败:', err);
+                });
             })
 
           Blank().height(40)
@@ -150,7 +269,6 @@ struct RegisterPage {
         .width('100%')
         .alignItems(HorizontalAlign.Center)
       }
-      .layoutWeight(1)
     }
     .width('100%')
     .height('100%')

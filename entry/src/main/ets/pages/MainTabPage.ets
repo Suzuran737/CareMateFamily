@@ -8,8 +8,8 @@ import ProfileTab from './ProfileTab';
 PersistentStorage.persistProp('isLogin', false);
 PersistentStorage.persistProp('userName', '未登录');
 PersistentStorage.persistProp('userPhone', '点击头像登录');
-PersistentStorage.persistProp('tempRegisteredName', '');
-PersistentStorage.persistProp('tempRegisteredPhone', '');
+// PersistentStorage.persistProp('tempRegisteredName', ''); // 旧逻辑：临时注册信息
+// PersistentStorage.persistProp('tempRegisteredPhone', ''); // 旧逻辑：临时注册信息
 
 @Entry
 @Component
