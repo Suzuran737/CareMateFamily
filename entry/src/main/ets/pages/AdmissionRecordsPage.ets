@@ -4,7 +4,6 @@ import promptAction from '@ohos.promptAction';
 import type common from '@ohos.app.ability.common';
 import { AdmissionRecord, ApplyFormData, AdmissionItem } from '../model/AdmissionRecord';
 import { KvStoreManager } from '../utils/KvStoreManager';
-import util from '@ohos.util';
 
 @Entry
 @Component
@@ -13,22 +12,17 @@ struct AdmissionRecordsPage {
   @State isLoading: boolean = true;
   private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
 
-  aboutToAppear() {
+  onPageShow() {
     this.loadRecords();
   }
 
-  // pages/AdmissionRecordsPage.ets 里的 loadRecords 方法
   async loadRecords() {
     this.isLoading = true;
     try {
       console.info('正在刷新列表...');
       await KvStoreManager.getInstance().initKvStore(this.context);
       const data = await KvStoreManager.getInstance().getRecords();
-
-      // --- 关键：使用展开运算符确保 UI 感知到数组变化 ---
       this.records = [...data];
-
-      promptAction.showToast({ message: `同步完成，共 ${this.records.length} 条` });
     } catch (e) {
       console.error('刷新失败');
     } finally {
@@ -36,15 +30,15 @@ struct AdmissionRecordsPage {
     }
   }
 
-  // 格式化时间戳
   formatDate(timestamp: number): string {
     const date = new Date(timestamp);
     return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
   }
 
   build() {
+    // 最外层 Column 垂直排列：导航栏 -> 列表(自适应) -> 底部按钮(固定)
     Column() {
-      // --- 1. 导航栏 ---
+      // --- 1. 顶部导航栏 ---
       Row() {
         Text('<')
           .fontSize(24)
@@ -58,108 +52,100 @@ struct AdmissionRecordsPage {
           .fontColor(Color.White)
           .layoutWeight(1)
           .textAlign(TextAlign.Center)
-          .margin({ right: 40 })
-        // pages/AdmissionRecordsPage.ets 标题栏 Row 内部追加
+
         Text('刷新')
           .fontSize(14)
           .fontColor(Color.White)
           .margin({ right: 16 })
-          .onClick(() => {
-            this.loadRecords(); // 点击手动触发加载
-          })
+          .onClick(() => this.loadRecords())
       }
       .width('100%')
       .height(56)
       .backgroundColor('#07C6A5')
 
-      // --- 2. 内容区 ---
-      if (this.isLoading) {
-        Column() {
-          LoadingProgress().width(40).height(40).color('#07C6A5')
-          Text('加载中...').fontColor('#999').margin({ top: 8 })
-        }.justifyContent(FlexAlign.Center).layoutWeight(1)
-      } else if (this.records.length === 0) {
-        Column() {
-          Image($r('app.media.ic_empty_record')) // 请确保有此图标或换成文字
-            .width(100).height(100).opacity(0.5)
-          Text('暂无申请记录').fontColor('#999').margin({ top: 16 })
-        }.justifyContent(FlexAlign.Center).layoutWeight(1)
-      } else {
-        List({ space: 12 }) {
-          ForEach(this.records, (record: AdmissionRecord) => {
-            ListItem() {
-              this.RecordCard(record)
-            }
-          })
+      // --- 2. 中间内容区 (使用 layoutWeight 确保它占据剩余空间) ---
+      Column() {
+        if (this.isLoading) {
+          Column() {
+            LoadingProgress().width(40).height(40).color('#07C6A5')
+            Text('加载中...').fontColor('#999').margin({ top: 8 })
+          }.width('100%').height('100%').justifyContent(FlexAlign.Center)
+        } else if (this.records.length === 0) {
+          Column() {
+            Image($r('app.media.ic_empty_record'))
+              .width(100).height(100).opacity(0.5)
+            Text('暂无申请记录').fontColor('#999').margin({ top: 16 })
+          }.width('100%').height('100%').justifyContent(FlexAlign.Center)
+        } else {
+          List({ space: 12 }) {
+            ForEach(this.records, (record: AdmissionRecord) => {
+              ListItem() {
+                this.RecordCard(record)
+              }
+            }, (item: AdmissionRecord) => item.id + item.submitTime)
+          }
+          .width('100%')
+          .height('100%')
+          .padding({ left: 16, right: 16, top: 12 })
         }
-        .width('100%')
-        .layoutWeight(1)
-        .padding(16)
       }
+      .layoutWeight(1) // 重要：这会让中间区域自适应，从而把按钮顶到底部
+      .width('100%')
+
+      // --- 3. 底部固定按钮区 ---
+      Column() {
+        Button('申请入住')
+          .width('90%')
+          .height(50)
+          .borderRadius(25)
+          .backgroundColor('#07C6A5')
+          .fontColor(Color.White)
+          .fontSize(18)
+          .fontWeight(FontWeight.Bold)
+          .shadow({ radius: 8, color: '#4D07C6A5', offsetY: 4 })
+          .onClick(() => {
+            router.pushUrl({ url: 'pages/AdmissionApplyPage' });
+          })
+      }
+      .width('100%')
+      .padding({ top: 12, bottom: 24 }) // 底部预留安全距离
+      .backgroundColor(Color.White)
+      .shadow({ radius: 10, color: '#1A000000', offsetY: -2 })
     }
     .width('100%')
     .height('100%')
     .backgroundColor('#F1F3F5')
   }
 
-  // --- 3. 记录卡片组件 ---
+  // --- 记录卡片组件 ---
   @Builder RecordCard(record: AdmissionRecord) {
     Column() {
-      // 头部：类型 + 状态
       Row() {
         Row() {
           Circle({ width: 8, height: 8 }).fill(record.type === 'SINGLE' ? '#07C6A5' : '#1890FF')
           Text(record.type === 'SINGLE' ? ' 单人申请' : ' 批量申请')
-            .fontSize(14)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(record.type === 'SINGLE' ? '#07C6A5' : '#1890FF')
+            .fontSize(14).fontWeight(FontWeight.Medium).fontColor(record.type === 'SINGLE' ? '#07C6A5' : '#1890FF')
         }
-
         this.StatusBadge(record.status)
-      }
-      .width('100%')
-      .justifyContent(FlexAlign.SpaceBetween)
-      .margin({ bottom: 12 })
+      }.width('100%').justifyContent(FlexAlign.SpaceBetween).margin({ bottom: 12 })
 
-      // 中间：人员信息
       Column() {
         if (record.type === 'SINGLE') {
-          // 直接在参数里进行类型转换 (record.data as ApplyFormData)
           this.InfoLine('姓名', (record.data as ApplyFormData).name)
-          this.InfoLine('机构/部门', `${(record.data as ApplyFormData).org} / ${(record.data as ApplyFormData).dept}`)
+          this.InfoLine('机构', (record.data as ApplyFormData).org)
         } else {
-          // 同样，批量申请也直接转换 (record.data as AdmissionItem[])
-          this.InfoLine('申请人数', `${(record.data as AdmissionItem[]).length} 人`)
-          this.InfoLine('主要人员', (record.data as AdmissionItem[])[0].name +
-            ((record.data as AdmissionItem[]).length > 1 ? ` 等${(record.data as AdmissionItem[]).length}人` : ''))
+          this.InfoLine('申请人数', (record.data as AdmissionItem[]).length + ' 人')
+          if ((record.data as AdmissionItem[]).length > 0) {
+            this.InfoLine('主要人员', (record.data as AdmissionItem[])[0].name)
+          }
         }
-      }
-      .alignItems(HorizontalAlign.Start)
-      .backgroundColor('#F8F9FA')
-      .padding(12)
-      .borderRadius(8)
-      .width('100%')
+      }.alignItems(HorizontalAlign.Start).backgroundColor('#F8F9FA').padding(12).borderRadius(8).width('100%')
 
-      // 底部：时间
-      Row() {
-        Text('提交时间：' + this.formatDate(record.submitTime))
-          .fontSize(12)
-          .fontColor('#999')
-      }
-      .width('100%')
-      .margin({ top: 12 })
+      Text('提交时间：' + this.formatDate(record.submitTime)).fontSize(12).fontColor('#999').margin({ top: 12 })
     }
-    .padding(16)
-    .backgroundColor(Color.White)
-    .borderRadius(12)
-    .shadow({ radius: 6, color: '#10000000', offsetY: 2 })
+    .padding(16).backgroundColor(Color.White).borderRadius(12).shadow({ radius: 6, color: '#10000000', offsetY: 2 })
     .onClick(() => {
-      router.pushUrl({
-        url: 'pages/AdmissionRecordDetailPage',
-        params: {
-          record: record // 把整条数据塞进参数传过去
-        }
-      });
+      router.pushUrl({ url: 'pages/AdmissionRecordDetailPage', params: { record: record } });
     })
   }
 
@@ -172,11 +158,6 @@ struct AdmissionRecordsPage {
 
   @Builder StatusBadge(status: string) {
     Text(status === 'PENDING' ? '待审核' : status === 'APPROVED' ? '已通过' : '已拒绝')
-      .fontSize(11)
-      .fontColor(status === 'PENDING' ? '#FAAD14' : status === 'APPROVED' ? '#52C41A' : '#F5222D')
-      .backgroundColor(status === 'PENDING' ? '#FFFBE6' : status === 'APPROVED' ? '#F6FFED' : '#FFF1F0')
-      .padding({ left: 8, right: 8, top: 2, bottom: 2 })
-      .border({ width: 0.5, color: status === 'PENDING' ? '#FFE58F' : status === 'APPROVED' ? '#B7EB8F' : '#FFA39E' })
-      .borderRadius(4)
+      .fontSize(11).fontColor('#FAAD14').backgroundColor('#FFFBE6').padding({ left: 8, right: 8, top: 2, bottom: 2 }).borderRadius(4)
   }
 }
