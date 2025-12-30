@@ -12,6 +12,7 @@
     "pages/LoginPage",
     "pages/AdmissionRecordsPage",
     "pages/AdmissionRecordDetailPage",
+    "pages/AddCareUserPage",
     "pages/RegisterPage"
   ]
 }
