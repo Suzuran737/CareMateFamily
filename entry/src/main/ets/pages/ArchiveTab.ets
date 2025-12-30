@@ -1,10 +1,25 @@
 // 用户档案 Tab 页面
-import { UserInfo } from '../model/AdmissionRecord';
+import router from '@ohos.router';
+import promptAction from '@ohos.promptAction';
+import type common from '@ohos.app.ability.common';
+import { CareUserStoreManager, CareUserRecord } from '../utils/CareUserStoreManager';
+
+const STATIC_USER: CareUserRecord = new CareUserRecord(
+  'static_user_1',
+  0,
+  '张三',
+  '男',
+  '父亲',
+  '1950-01-01',
+  '110101195001010011',
+  '退休',
+  '上海'
+);
 
 @Component
 struct UserCard {
   // 使用@Prop装饰器实现卡片复用
-  @Prop user: UserInfo;
+  @Prop user: CareUserRecord;
   @State private isExpanded: boolean = false;
 
   build() {
@@ -14,10 +29,10 @@ struct UserCard {
         // 左侧：头像和姓名
         Column({ space: 8 }) {
           // 头像
-          Image(this.user.gender === '男' ? $r('app.media.ic_user'): $r('app.media.ic_user'))
-            .width(70)
-            .height(70)
-            .borderRadius(35)
+          Image(this.user.gender === '男' ? $r('app.media.ic_man') : $r('app.media.ic_woman'))
+            .width(80)
+            .height(80)
+            .borderRadius(40)
             .objectFit(ImageFit.Cover)
             .backgroundColor(Color.Gray)
 
@@ -37,18 +52,22 @@ struct UserCard {
           // 性别角标（右上角）
           Row() {
             Text(this.user.gender === '男' ? '♂' : '♀')
-              .fontSize(12)
+              .fontSize(14)
               .fontColor(this.user.gender === '男' ? Color.Blue : Color.Red)
               .margin({ right: 2 })
 
             Text(this.user.gender)
-              .fontSize(12)
+              .fontSize(14)
               .fontColor(Color.Black)
           }
-          .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-          .borderRadius(4)
-          .backgroundColor(this.user.gender === '男' ?
-            '#E6F3FF' : '#FFE6E6') // 浅蓝/浅红背景
+          .padding({
+            left: 6,
+            right: 6,
+            top: 2,
+            bottom: 2
+          })
+          .borderRadius(2)
+          .backgroundColor(this.user.gender === '男' ? '#E6F3FF' : '#FFE6E6') // 浅蓝/浅红背景
           .alignSelf(ItemAlign.End) // 靠右对齐
           .margin({ bottom: 8 })
 
@@ -65,7 +84,6 @@ struct UserCard {
       }
       .padding(16)
     }
-    .backgroundColor(0xFFFFFFFF)
     .borderWidth($r('app.float.home_health_card_border_width'))
     .borderColor(0x28000000)
     .borderRadius($r('app.float.home_health_card_radius'))
@@ -75,6 +93,7 @@ struct UserCard {
       right: $r('app.float.home_health_card_horizontal_margin'),
       top: $r('app.float.home_health_card_top_margin')
     })
+
     //.onClick(() => this.onEdit(this.user.id))
   }
 
@@ -84,96 +103,42 @@ struct UserCard {
     Row() {
       // 标签（灰色左对齐）
       Text(label)
-        .fontSize(13)
+        .fontSize(14)
         .fontColor('#666666') // 灰色
         .textAlign(TextAlign.Start)
-        .width('40%')
+
+      Blank().layoutWeight(1)
 
       // 信息（黑色右对齐）
       Text(value)
-        .fontSize(13)
+        .fontSize(14)
         .fontColor(Color.Black)
         .textAlign(TextAlign.End)
-        .width('60%')
         .maxLines(1)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .textOverflow({ overflow: TextOverflow.None })
     }
-    .width('100%')
-    .margin({ bottom: 4,right: 4})
+    .width('90%')
+    .margin({ left: 18, bottom: 8, right: 4 })
   }
 }
 
-@Component
-struct TextSelector {
-  @State isShowDialog: boolean = false
-  @Prop selectedValue: string
-  @Prop options: string[]
-  @State private popupPosition: Position = { x: 0, y: 0 }
-  onValueChange?: (value: string) => void
-
-  build() {
-    Column({ space: 20 }) {
-      // 文本选择器
-      Text(this.selectedValue||'点击选择')
-        .id('selectorText')
-        .fontSize(20)
-        .fontColor(Color.Blue)
-        .padding(10)
-        .border({ width: 1, color: Color.Gray })
-        .borderRadius(8)
-        .onClick(async () => {
-          this.isShowDialog = !this.isShowDialog
-        })
-      if (this.isShowDialog){
-        Column() {
-          ForEach(this.options, (item: string) => {
-            Text(item)
-              .fontSize(18)
-              .width('100%')
-              .padding(15)
-              .backgroundColor(Color.White)
-              .onClick(() => {
-                this.onSelect(item)
-              })
-          }, (item: string) => item)
-        }
-        .width('100%')
-        .height('auto') // 限制最大高度
-        .border({ width: 1, color: Color.Gray })
-        .borderRadius(8)
-        .backgroundColor(Color.White)
-        .shadow({ radius: 10, color: Color.Gray, offsetX: 0, offsetY: 5 })
-        .position({ x: 0, y: 20 }) // 在文本下方
-        .zIndex(999) // 确保在最顶层
-        .onClick(() => {
-          // 阻止冒泡，避免点击选项时关闭
-        })
-      }
-    }
-    .width('100%')
-    .height('auto')
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center)
-  }
-  onSelect(item: string) {
-    this.selectedValue = item
-    this.isShowDialog = false
-    if (this.onValueChange !== undefined) {
-      this.onValueChange(item)
-    }
-  }
-}
-
+// 页面入口
 @Component
 export default struct ArchiveTab {
-  private users: UserInfo[] = []; // 用户数据数组
-  @State showInlineForm: boolean = false;
-  @State showEditForm: boolean = false;
-  @State newItem: UserInfo = {id:'',name:'',avatar:'',gender:'',relationship:'',birthday:'',idCard:''}
-  @State editingID: number = -1; // 正在编辑的项目索引
-  aboutToAppear() {
-    // 这里模拟数据，实际应从网络或本地获取
-    this.users = this.getMockUsers();
+  private context: common.UIAbilityContext = getContext() as common.UIAbilityContext;
+  @StorageLink('careUserRefresh') @Watch('onRefreshKeyChanged') refreshKey: number = 0;
+  @State users: CareUserRecord[] = [STATIC_USER]; // 用户数据数组
+
+  aboutToAppear(): void {
+    this.loadUsers();
+  }
+
+  onPageShow(): void {
+    this.loadUsers();
+  }
+
+  private onRefreshKeyChanged(): void {
+    this.loadUsers();
   }
 
   build() {
@@ -187,196 +152,136 @@ export default struct ArchiveTab {
             .fontColor(0xFFFFFFFF)
         }
         .height($r('app.float.home_header_height'))
-        .margin({bottom : 5})
+        .margin({ bottom: 5 })
         .justifyContent(FlexAlign.Center)
         .alignItems(VerticalAlign.Center)
 
         // 2. 用户信息区
-        if (!this.showInlineForm && !this.showEditForm) {
-          Scroll() {
-            Column() {
-              Row() {
+        Scroll() {
+          Column() {
+            // 用户列表标题
+            Row() {
+              Column() {
                 Text('用户列表')
-                  .fontSize(30)
+                  .fontSize(28)
                   .fontWeight(FontWeight.Bold)
-                  .fontColor(Color.Black)
-                  .textAlign(TextAlign.Start)
-                  .padding({ left: 15, top: 20 })
-              }
-              .width('100%')
-              .justifyContent(FlexAlign.Start)
+                  .fontColor(0xFF333333)
 
-              Column({ space: 12 }) {
-                // 使用ForEach循环渲染可复用卡片
-                ForEach(this.users, (user: UserInfo) => {
-                  UserCard({ user: user })
-                }, (user: UserInfo) => user.id)
+                // 下划线（从文字开头开始）
+                Row()
+                  .width(56)
+                  .height(3)
+                  .backgroundColor(0xFF333333)
+                  .borderRadius(2)
+                  .margin({ top: 6 })
               }
-              .padding(4)
-              .width('100%')
-
-              Text('没有更多了喵')
-                .fontSize(12)
-                .fontColor(Color.Grey)
-                .opacity(0.9)
-                .margin({ top: 15, bottom: 30 })
+              .alignItems(HorizontalAlign.Start)
+              .margin({ left: $r('app.float.home_health_section_title_left_margin') })
             }
             .width('100%')
-            .height('100%')
+            .margin({
+              top: 32,
+              bottom: $r('app.float.home_health_section_title_bottom_margin')
+            })
+            .justifyContent(FlexAlign.Start)
+            .alignItems(VerticalAlign.Center)
+
+            Column({ space: 4 }) {
+              // 使用 ForEach 循环渲染可复用卡片
+              ForEach(this.users, (user: CareUserRecord) => {
+                UserCard({ user: user })
+              }, (user: CareUserRecord) => user.id)
+            }
+            .padding(4)
+            .width('100%')
+
+            Text('没有更多')
+              .fontSize(12)
+              .fontColor(Color.Grey)
+              .opacity(0.9)
+              .margin({ top: 15, bottom: 30 })
           }
           .width('100%')
-          .height('85%')
-          .backgroundColor('#EEEEEE')
-          .scrollBar(BarState.Off)
         }
-
-        // 3. 底部按钮
-        if (!this.showInlineForm && !this.showEditForm) {
-          Row() {
-            Button('添加康养用户')
-              .layoutWeight(1)
-              .height(44)
-              .backgroundColor('#07C6A5')
-              .fontColor(Color.White)
-              .onClick(() => this.onAdd())
-          }
-          .width('95%')
-        }
-
-        // --- 4. 添加人员的遮罩层/表单 ---
-        if (this.showInlineForm || this.showEditForm) {
-          // 表单卡片
-          Column() {
-            Text(this.showEditForm ? '编辑用户' : '新增用户')
-              .fontSize(18)
-              .fontWeight(FontWeight.Bold)
-              .margin({ bottom: 20 })
-
-            Image($r('app.media.ic_user'))
-              .width(70)
-              .height(70)
-              .borderRadius(35)
-              .objectFit(ImageFit.Cover)
-              .backgroundColor(Color.Gray)
-
-            this.InputBuilder('姓名', '请输入姓名', this.newItem.name, (val) => this.newItem.name = val)
-            this.InputBuilder('关系', '请输入关系', this.newItem.name, (val) => this.newItem.name = val)
-            this.InputBuilder('性别', '请输入“男”或“女”', this.newItem.name, (val) => this.newItem.name = val)
-            this.InputBuilder('身份证', '请输入身份证号', this.newItem.idCard, (val) => this.newItem.idCard = val)
-
-            Row() {
-              Button(this.showEditForm ? '删除用户' : '取消')
-                .onClick(() => this.onFormCancel())
-                .backgroundColor('#F5F5F5')
-                .fontColor('#666')
-                .layoutWeight(1)
-                .margin({ right: 12 })
-
-              Button(this.showEditForm ? '保存修改' : '确认添加')
-                //.onClick(() => this.onFormSubmit())
-                .backgroundColor('#07C6A5')
-                .fontColor(Color.White)
-                .layoutWeight(1)
-            }
-            .margin({ top: 20 })
-          }
-          .width('96%')
-          .backgroundColor(Color.White)
-          .borderRadius(10)
-          .padding(24)
-          .zIndex(11)
-          .shadow({ radius: 20, color: '#4D000000', offsetY: 10 })
-          .margin({ bottom: '20%' })
-        }
-
+        .width('100%')
+        .backgroundColor('#EEEEEE')
+        .scrollBar(BarState.Off)
       }
       .width('100%')
       .alignItems(HorizontalAlign.Center)
+
+      Blank().layoutWeight(1)
+
+      // 3. 底部按钮
+      Row() {
+        Button('添加康养用户')
+          .layoutWeight(1)
+          .height(44)
+          .backgroundColor('#07C6A5')
+          .fontColor(Color.White)
+          .onClick(() => this.onAdd())
+
+        Button('清空档案')
+          .layoutWeight(1)
+          .height(44)
+          .backgroundColor('#FFFFFF')
+          .fontColor('#07C6A5')
+          .borderWidth(1)
+          .borderColor('#07C6A5')
+          .borderRadius(6)
+          .margin({ left: 12 })
+          .onClick(() => this.onClearUsers())
+      }
+      .width('95%')
+      .margin({ bottom: 12 })
     }
     .width('100%')
     .height('100%')
-
-
   }
 
-  @Builder InputBuilder(label: string, placeholder: string, value: string, onChange: (val: string) => void) {
-    Row() {
-      Text(label)
-        .fontSize(14)
-        .fontColor('#333')
-        .textAlign(TextAlign.Start)
-        .width('20%')
-
-      TextInput({ placeholder: placeholder, text: value })
-        .fontSize(14)
-        .textAlign(TextAlign.End)
-        .width('80%')
-        .maxLines(1)
-        .onChange((val) => onChange(val))
-    }
-    .width('100%')
-    .margin({ bottom: 4,right: 4})
-  }
-  @Builder SelectBuilder(label: string, options: string[], selectedValue: string, onSelect: (val: string) => void) {
-    Row() {
-      Text(label)
-        .fontSize(14)
-        .fontColor('#333')
-        .textAlign(TextAlign.Start)
-        .width('40%')
-      // 手动实现文本选择器
-      TextSelector({selectedValue:selectedValue, options:options, onValueChange:(val: string) => {onSelect(val)} })
-    }
-    .width('100%')
-    .height(40)
-    .margin({ bottom: 12 })
+  private onAdd(): void {
+    router.pushUrl({ url: 'pages/AddCareUserPage' });
   }
 
-
-  onAdd() {
-    this.newItem = {id:'',name:'',avatar:'',gender:'',relationship:'',birthday:'',idCard:''}
-    this.showInlineForm = true;
-    this.showEditForm = false;
-    this.editingID = -1;
+  private onClearUsers(): void {
+    CareUserStoreManager.getInstance().initKvStore(this.context)
+      .then(() => CareUserStoreManager.getInstance().clearUsers())
+      .then(() => {
+        this.users = [STATIC_USER];
+        promptAction.showDialog({
+          message: '已清空康养用户档案',
+          buttons: [
+            {
+              text: '确认',
+              color: '#07C6A5'
+            }
+          ]
+        });
+      })
+      .catch((err: Error) => {
+        console.error('清空康养用户失败:', err);
+        promptAction.showDialog({
+          message: '清空失败，请重试',
+          buttons: [
+            {
+              text: '确认',
+              color: '#07C6A5'
+            }
+          ]
+        });
+      });
   }
 
-  onFormCancel() {
-    this.showInlineForm = false;
-    this.showEditForm = false;
-    this.editingID = -1;
-    this.newItem = {id:'',name:'',avatar:'',gender:'',relationship:'',birthday:'',idCard:''}
-  }
-
-  // 模拟用户数据
-  private getMockUsers(): UserInfo[] {
-    return [
-      {
-        id: '1',
-        name: '张三',
-        avatar: 'https://example.com/avatar1.jpg',
-        gender: '男',
-        relationship: '朋友',
-        birthday: '1990-05-15',
-        idCard: '11010119900515****'
-      },
-      {
-        id: '2',
-        name: '李四',
-        avatar: 'https://example.com/avatar2.jpg',
-        gender: '女',
-        relationship: '家人',
-        birthday: '1988-11-23',
-        idCard: '11010119881123****'
-      },
-      {
-        id: '3',
-        name: '王五',
-        avatar: 'https://example.com/avatar3.jpg',
-        gender: '男',
-        relationship: '同事',
-        birthday: '1995-03-08',
-        idCard: '11010119950308****'
-      }
-    ];
+  // 从 KvStore 读取康养用户数据
+  private loadUsers(): void {
+    CareUserStoreManager.getInstance().initKvStore(this.context)
+      .then(() => CareUserStoreManager.getInstance().getUsers())
+      .then((list: CareUserRecord[]) => {
+        this.users = [STATIC_USER].concat(list);
+      })
+      .catch((err: Error) => {
+        console.error('读取康养用户失败:', err);
+        this.users = [STATIC_USER];
+      });
   }
 }
