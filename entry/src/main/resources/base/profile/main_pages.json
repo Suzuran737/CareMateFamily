@@ -17,6 +17,7 @@
     "pages/AdmissionRecordsPage",
     "pages/AdmissionRecordDetailPage",
     "pages/AddCareUserPage",
+    "pages/CareUserDetailPage",
     "pages/RegisterPage"
   ]
 }

@@ -90,6 +90,14 @@ struct UserCard {
   }
 }
 
+class CareUserDetailRouteParams {
+  id: string;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+}
+
 @Component
 export default struct ArchiveTab {
   private context: common.UIAbilityContext = getContext() as common.UIAbilityContext;
@@ -118,6 +126,14 @@ export default struct ArchiveTab {
 
   private onLoginUserChanged(): void {
     this.loadUsers();
+  }
+
+  private openDetail(user: CareUserRecord): void {
+    const params: CareUserDetailRouteParams = new CareUserDetailRouteParams(user.id);
+    router.pushUrl({
+      url: 'pages/CareUserDetailPage',
+      params: params
+    });
   }
 
   build() {
@@ -161,7 +177,10 @@ export default struct ArchiveTab {
           // 列表
           Column({ space: 4 }) {
             ForEach(this.users, (user: CareUserRecord) => {
-              UserCard({ user: user })
+              Column() {
+                UserCard({ user: user })
+              }
+              .onClick(() => this.openDetail(user))
             }, (user: CareUserRecord) => user.id)
           }
           .padding(4)
