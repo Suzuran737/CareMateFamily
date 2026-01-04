@@ -27,16 +27,14 @@ export default struct ServiceReservationPage {
 
   // 下拉选项：康养用户 / 看护 / 时间
   @State private userOptions: SelectOption[] = [];
+  // 看护列表（暂用本地数据，后续可替换为接口/资源加载）
   private nurseOptions: SelectOption[] = [
     new SelectOption('李梅'),
     new SelectOption('张三'),
     new SelectOption('陈芳')
   ];
-  private timeOptions: SelectOption[] = [
-    new SelectOption('2025-12-01 09:00'),
-    new SelectOption('2025-12-01 14:00'),
-    new SelectOption('2025-12-02 09:00')
-  ];
+  // 预约时间列表（动态生成）
+  @State private timeOptions: SelectOption[] = [];
   // 选中索引（-1 表示未选择）
   @State selectedUserIndex: number = -1;
   @State selectedNurseIndex: number = -1;
@@ -47,6 +45,9 @@ export default struct ServiceReservationPage {
   @State address: string = '';
   @State remark: string = '';
 
+  /**
+   * 页面首次进入：加载服务详情与表单选项
+   */
   aboutToAppear() {
     const params = router.getParams() as ServiceReservationRouteParams;
     let serviceId: number = 0;
@@ -68,13 +69,74 @@ export default struct ServiceReservationPage {
       });
 
     this.loadCareUsers();
+    this.refreshTimeOptions();
   }
 
+  /**
+   * 页面回显：返回本页时刷新下拉选项
+   */
   onPageShow(): void {
     // 返回页面时刷新康养用户列表
     this.loadCareUsers();
+    this.refreshTimeOptions();
   }
 
+  /**
+   * 刷新预约时间选项（基于当前日期动态生成）
+   */
+  private refreshTimeOptions(): void {
+    this.timeOptions = this.buildTimeOptions();
+    if (this.timeOptions.length === 0) {
+      this.selectedTimeIndex = -1;
+    } else if (this.selectedTimeIndex >= this.timeOptions.length) {
+      this.selectedTimeIndex = -1;
+    }
+  }
+
+  /**
+   * 生成预约时间候选（默认取未来 3 天内的 09:00/14:00，最多 3 条）
+   */
+  private buildTimeOptions(): SelectOption[] {
+    const options: SelectOption[] = [];
+    const base: Date = new Date();
+    const dayMillis: number = 24 * 60 * 60 * 1000;
+    const slots: string[] = ['09:00', '14:00'];
+    for (let dayOffset = 1; dayOffset <= 3; dayOffset++) {
+      const date = new Date(base.getTime() + dayOffset * dayMillis);
+      const dateText: string = this.formatDate(date);
+      for (let i = 0; i < slots.length; i++) {
+        if (options.length >= 3) {
+          return options;
+        }
+        options.push(new SelectOption(`${dateText} ${slots[i]}`));
+      }
+    }
+    return options;
+  }
+
+  /**
+   * 日期格式化：YYYY-MM-DD
+   */
+  private formatDate(date: Date): string {
+    const year: number = date.getFullYear();
+    const month: number = date.getMonth() + 1;
+    const day: number = date.getDate();
+    return `${year}-${this.pad2(month)}-${this.pad2(day)}`;
+  }
+
+  /**
+   * 数字补零：单个数值补齐到两位
+   */
+  private pad2(value: number): string {
+    if (value < 10) {
+      return `0${value}`;
+    }
+    return value.toString();
+  }
+
+  /**
+   * 从 KvStore 读取当前登录用户的康养用户
+   */
   private loadCareUsers(): void {
     // 仅加载当前登录用户的康养用户列表
     const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
@@ -600,52 +662,52 @@ export default struct ServiceReservationPage {
             })
 
           // 清空已保存订单
-          Button('清空已保存订单')
-            .width('80%')
-            .height($r('app.float.service_button_height'))
-            .backgroundColor($r('app.color.service_button_background_color'))
-            .fontColor($r('app.color.service_button_text_color'))
-            .fontSize($r('app.float.service_button_font_size'))
-            .borderRadius($r('app.float.service_button_border_radius'))
-            .margin({ top: 12 })
-            .onClick(() => {
-              const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
-              const ownerName: string = AppStorage.get<string>('userName') || '';
-              if (!isLogin || !ownerName || ownerName === '未登录') {
-                // 未登录不允许清空订单
-                promptAction.showDialog({
-                  message: '请先登录后再清空订单',
-                  buttons: [
-                    {
-                      text: '确认',
-                      color: '#07C6A5'
-                    }
-                  ]
-                });
-                return;
-              }
-              ReservationStoreManager.getInstance().initKvStore(this.context)
-                // .then(() => ReservationStoreManager.getInstance().clearReservations()) // 旧逻辑：清空全部用户订单
-                .then(() => ReservationStoreManager.getInstance().clearReservations(ownerName))
-                .then(() => {
-                  promptAction.showDialog({
-                    message: '已清空已保存订单',
-                    buttons: [
-                      {
-                        text: '确认',
-                        color: '#07C6A5'
-                      }
-                    ]
-                  });
-                })
-                .catch((err: Error) => {
-                  promptAction.showDialog({
-                    title: '提示',
-                    message: `清空订单失败：${err?.message ?? '未知错误'}`
-                  });
-                  console.error('清空订单失败:', err);
-                });
-            })
+          // Button('清空已保存订单')
+          //   .width('80%')
+          //   .height($r('app.float.service_button_height'))
+          //   .backgroundColor($r('app.color.service_button_background_color'))
+          //   .fontColor($r('app.color.service_button_text_color'))
+          //   .fontSize($r('app.float.service_button_font_size'))
+          //   .borderRadius($r('app.float.service_button_border_radius'))
+          //   .margin({ top: 12 })
+          //   .onClick(() => {
+          //     const isLogin: boolean = AppStorage.get<boolean>('isLogin') === true;
+          //     const ownerName: string = AppStorage.get<string>('userName') || '';
+          //     if (!isLogin || !ownerName || ownerName === '未登录') {
+          //       // 未登录不允许清空订单
+          //       promptAction.showDialog({
+          //         message: '请先登录后再清空订单',
+          //         buttons: [
+          //           {
+          //             text: '确认',
+          //             color: '#07C6A5'
+          //           }
+          //         ]
+          //       });
+          //       return;
+          //     }
+          //     ReservationStoreManager.getInstance().initKvStore(this.context)
+          //       // .then(() => ReservationStoreManager.getInstance().clearReservations()) // 旧逻辑：清空全部用户订单
+          //       .then(() => ReservationStoreManager.getInstance().clearReservations(ownerName))
+          //       .then(() => {
+          //         promptAction.showDialog({
+          //           message: '已清空已保存订单',
+          //           buttons: [
+          //             {
+          //               text: '确认',
+          //               color: '#07C6A5'
+          //             }
+          //           ]
+          //         });
+          //       })
+          //       .catch((err: Error) => {
+          //         promptAction.showDialog({
+          //           title: '提示',
+          //           message: `清空订单失败：${err?.message ?? '未知错误'}`
+          //         });
+          //         console.error('清空订单失败:', err);
+          //       });
+          //   })
         }
         .width('100%')
         .margin({ bottom: $r('app.float.service_button_bottom_margin') })
