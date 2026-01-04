@@ -1,15 +1,23 @@
 // 导入数据模型
 import router from '@ohos.router';
-import { User, HealthData, HealthDataManager } from '../model/HealthData';
+import type common from '@ohos.app.ability.common';
+import { CareUserStoreManager, CareUserRecord } from '../utils/CareUserStoreManager';
+import { HealthRecordStoreManager } from '../utils/HealthRecordStoreManager';
+import { HealthUser, HealthData, HealthDataManager } from '../model/HealthData';
 
 // 选择器选项类型
-interface SelectOption {
+class SelectOption {
   label: string;
   value: string;
+
+  constructor(label: string, value: string) {
+    this.label = label;
+    this.value = value;
+  }
 }
 
 interface HealthDetailRouteParams {
-  userId?: number;
+  userId?: string | number;
   type?: string;
 }
 
@@ -187,8 +195,17 @@ struct HealthTrendCard {
 @Entry
 @Component
 export default struct HealthDetailPage {
+  private context: common.UIAbilityContext = getContext() as common.UIAbilityContext;
+  private healthStore: HealthRecordStoreManager = HealthRecordStoreManager.getInstance();
+  private careStore: CareUserStoreManager = CareUserStoreManager.getInstance();
+
+  @StorageLink('healthDataRefresh') @Watch('onHealthRefreshChanged') private refreshKey: number = 0;
+  @StorageLink('isLogin') @Watch('onLoginStateChanged') private isLogin: boolean = false;
+  @StorageLink('userName') @Watch('onLoginUserChanged') private ownerName: string = '未登录';
+
   // 状态变量
-  @State selectedUser: User | null = null;
+  @State selectedUser: HealthUser | null = null;
+  @State private users: HealthUser[] = [];
   @State selectedHealthType: string = '心率';
   @State currentTabIndex: number = 0;
   @State showHealthData: boolean = false;
@@ -199,73 +216,131 @@ export default struct HealthDetailPage {
 
   // 静态数据
   private healthTypes: string[] = HealthDataManager.getHealthTypes();
-  private userOptions: SelectOption[] = [];
+  @State private userOptions: SelectOption[] = [];
+  private routeUserId: string = '';
+  private routeType: string = '';
 
   // 生命周期回调 - 初始化数据
   aboutToAppear(): void {
-    this.updateUserOptions();
-    this.applyRouteParams();
+    this.readRouteParams();
+    this.loadUsers();
   }
 
-  // 更新用户选项
-  private updateUserOptions(): void {
-    const users = HealthDataManager.getUsers();
-    const options: SelectOption[] = [];
-
-    users.forEach(user => {
-      const option: SelectOption = {
-        label: user.id.toString(),
-        value: user.name
-      };
-      options.push(option);
-    });
-
-    this.userOptions = options;
-
-    // 默认选择第一个用户
-    if (users.length > 0 && !this.selectedUser) {
-      this.selectUser(users[0]);
-    }
+  private onHealthRefreshChanged(): void {
+    this.loadUsers();
   }
 
-  private applyRouteParams(): void {
+  private onLoginStateChanged(): void {
+    this.loadUsers();
+  }
+
+  private onLoginUserChanged(): void {
+    this.loadUsers();
+  }
+
+  private readRouteParams(): void {
     const params = router.getParams() as HealthDetailRouteParams;
     if (!params) {
       return;
     }
-    if (typeof params.userId === 'number') {
-      const users = HealthDataManager.getUsers();
-      const match = users.find(user => user.id === params.userId);
-      if (match) {
-        this.selectUser(match);
-      }
+    if (typeof params.userId === 'string') {
+      this.routeUserId = params.userId;
+    } else if (typeof params.userId === 'number') {
+      this.routeUserId = params.userId.toString();
     }
     if (typeof params.type === 'string') {
-      const typeIndex: number = this.healthTypes.indexOf(params.type);
+      this.routeType = params.type;
+    }
+  }
+
+  private async loadUsers(): Promise<void> {
+    const merged: HealthUser[] = [];
+    const staticUsers: HealthUser[] = HealthDataManager.getUsers();
+    for (let i = 0; i < staticUsers.length; i++) {
+      merged.push(staticUsers[i]);
+    }
+
+    if (this.isLogin && this.ownerName && this.ownerName !== '未登录') {
+      try {
+        await this.careStore.initKvStore(this.context);
+        const careUsers: CareUserRecord[] = await this.careStore.getUsers(this.ownerName);
+        for (let i = 0; i < careUsers.length; i++) {
+          const record: CareUserRecord = careUsers[i];
+          if (!this.hasUser(merged, record.id, record.name)) {
+            merged.push(new HealthUser(record.id, record.name));
+          }
+        }
+      } catch (err) {
+        console.error('[HealthDetail] load care users failed:', err);
+      }
+    }
+
+    this.users = merged;
+    this.userOptions = merged.map((user: HealthUser) => {
+      return new SelectOption(user.id, user.name);
+    });
+
+    if (this.users.length === 0) {
+      this.selectedUser = null;
+      this.dataList = [];
+      this.chartValues = [];
+      this.currentValueText = '--';
+      this.chartSeed++;
+      return;
+    }
+
+    await this.applyRouteSelection();
+  }
+
+  private hasUser(list: HealthUser[], id: string, name: string): boolean {
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].id === id || list[i].name === name) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private async applyRouteSelection(): Promise<void> {
+    let targetUser: HealthUser | null = null;
+    if (this.routeUserId) {
+      for (let i = 0; i < this.users.length; i++) {
+        if (this.users[i].id === this.routeUserId) {
+          targetUser = this.users[i];
+          break;
+        }
+      }
+    }
+    if (!targetUser) {
+      targetUser = this.users[0];
+    }
+    await this.selectUser(targetUser);
+
+    if (this.routeType) {
+      const typeIndex: number = this.healthTypes.indexOf(this.routeType);
       if (typeIndex >= 0) {
         this.currentTabIndex = typeIndex;
-        this.selectHealthType(params.type);
+        await this.selectHealthType(this.routeType);
       }
     }
   }
 
   // 选择用户
-  private selectUser(user: User): void {
+  private async selectUser(user: HealthUser): Promise<void> {
     this.selectedUser = user;
     this.showHealthData = false;
     // 重置 Tab 状态
     this.currentTabIndex = 0;
     this.selectedHealthType = this.healthTypes[0] || '心率';
-    this.selectHealthType(this.selectedHealthType);
+    await this.selectHealthType(this.selectedHealthType);
   }
 
   // 选择健康数据类型
-  private selectHealthType(type: string): void {
+  private async selectHealthType(type: string): Promise<void> {
     this.selectedHealthType = type;
     if (this.selectedUser) {
       this.showHealthData = true;
-      this.dataList = this.getCurrentHealthData();
-      this.updateChartData();
+      await this.loadCurrentHealthData();
     }
   }
 
@@ -278,12 +353,32 @@ export default struct HealthDetailPage {
     }
   }
 
+  private async loadCurrentHealthData(): Promise<void> {
+    this.dataList = await this.getCurrentHealthData();
+    this.updateChartData();
+  }
+
   // 获取当前用户的健康数据
-  private getCurrentHealthData(): HealthData[] {
+  private async getCurrentHealthData(): Promise<HealthData[]> {
     if (!this.selectedUser) {
       return [];
     }
-    return HealthDataManager.getHealthData(this.selectedUser.id, this.selectedHealthType);
+    return this.getHealthDataByUserAndType(this.selectedUser.id, this.selectedHealthType);
+  }
+
+  private isStaticUser(userId: string): boolean {
+    return userId.indexOf('static_') === 0;
+  }
+
+  private async getHealthDataByUserAndType(userId: string, type: string): Promise<HealthData[]> {
+    if (this.isStaticUser(userId)) {
+      return HealthDataManager.getHealthData(userId, type);
+    }
+    if (!this.isLogin || !this.ownerName || this.ownerName === '未登录') {
+      return [];
+    }
+    await this.healthStore.initKvStore(this.context);
+    return this.healthStore.getRecordsByUserAndType(this.ownerName, userId, type);
   }
 
   private updateChartData(): void {
@@ -293,17 +388,39 @@ export default struct HealthDetailPage {
       this.chartSeed++;
       return;
     }
+    const ordered: HealthData[] = this.orderBySubmitTime(this.dataList);
     const values: number[] = [];
-    for (let i = 0; i < this.dataList.length; i++) {
-      const parsed: number = this.parseNumber(this.dataList[i].value);
+    for (let i = 0; i < ordered.length; i++) {
+      const parsed: number = this.parseNumber(ordered[i].value);
       if (parsed > 0) {
         values.push(parsed);
       }
     }
     this.chartValues = values;
-    const latest: HealthData = this.dataList[this.dataList.length - 1];
+    const latest: HealthData = this.getLatestFromList(this.dataList);
     this.currentValueText = this.formatHealthValue(latest);
     this.chartSeed++;
+  }
+
+  private orderBySubmitTime(list: HealthData[]): HealthData[] {
+    if (list.length === 0) {
+      return [];
+    }
+    if (typeof list[0].submitTime !== 'number') {
+      return list;
+    }
+    const ordered: HealthData[] = list.slice(0);
+    ordered.sort((a: HealthData, b: HealthData) => {
+      const timeA: number = typeof a.submitTime === 'number' ? a.submitTime : 0;
+      const timeB: number = typeof b.submitTime === 'number' ? b.submitTime : 0;
+      return timeA - timeB;
+    });
+    return ordered;
+  }
+
+  private getLatestFromList(list: HealthData[]): HealthData {
+    const ordered: HealthData[] = this.orderBySubmitTime(list);
+    return ordered[ordered.length - 1];
   }
 
   private parseNumber(value: string): number {
@@ -492,7 +609,7 @@ export default struct HealthDetailPage {
         Column() {
           // 使用 Select 组件选择用户（显示人名）
           Select(this.userOptions)
-            .selected(this.selectedUser ? this.userOptions.findIndex(option => option.label === this.selectedUser!.id.toString()) : -1)
+            .selected(this.selectedUser ? this.userOptions.findIndex(option => option.label === this.selectedUser!.id) : -1)
             .value(
               this.selectedUser
                 ? this.selectedUser.name
@@ -511,8 +628,9 @@ export default struct HealthDetailPage {
             .fontColor($r('app.color.service_primary_text_color'))
             .onSelect((index: number, value: string) => {
               if (index >= 0) {
-                const users = HealthDataManager.getUsers();
-                this.selectUser(users[index]);
+                if (index < this.users.length) {
+                  this.selectUser(this.users[index]);
+                }
               }
             })
         }

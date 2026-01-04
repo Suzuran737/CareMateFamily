@@ -12,6 +12,7 @@
     "pages/ServiceOrderDetailPage",
     "pages/HealthDetailPage",
     "pages/HealthEduDetailPage",
+    "pages/HealthRecordFormPage",
     "pages/LoginPage",
     "pages/AdmissionRecordsPage",
     "pages/AdmissionRecordDetailPage",
