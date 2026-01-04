@@ -38,6 +38,9 @@ export const MOCK_HEALTH_DATA: HealthData[] = [
   { userId: 'static_liugang', type: '心率', value: '80', measurementTime: '2024-02-03 09:20', unit: '次/分' },
   { userId: 'static_liugang', type: '心率', value: '78', measurementTime: '2024-02-05 19:10', unit: '次/分' },
   { userId: 'static_liugang', type: '心率', value: '82', measurementTime: '2024-02-07 07:55', unit: '次/分' },
+  { userId: 'static_liugang', type: '心率', value: '67', measurementTime: '2024-02-07 07:55', unit: '次/分' },
+  { userId: 'static_liugang', type: '心率', value: '98', measurementTime: '2024-02-07 07:55', unit: '次/分' },
+  { userId: 'static_liugang', type: '心率', value: '89', measurementTime: '2024-02-07 07:55', unit: '次/分' },
 
   { userId: 'static_liugang', type: '血氧', value: '95', measurementTime: '2024-02-01 08:30', unit: '%' },
   { userId: 'static_liugang', type: '血氧', value: '96', measurementTime: '2024-02-05 20:10', unit: '%' },

@@ -447,6 +447,10 @@ export default struct HealthDetailPage {
     return data.value;
   }
 
+  private openHealthForm(): void {
+    router.pushUrl({ url: 'pages/HealthRecordFormPage' });
+  }
+
   /** ---------- 公共行：左标题 / 右内容 ---------- */
   @Builder
   InfoRow(label: string, value: string) {
@@ -591,7 +595,8 @@ export default struct HealthDetailPage {
   }
 
   build() {
-    Column() {
+    Stack({ alignContent: Alignment.BottomEnd }) {
+      Column() {
       /** ---------- 顶部导航栏 ---------- */
       Row() {
         Text('健康数据')
@@ -699,6 +704,28 @@ export default struct HealthDetailPage {
       .width('100%')
       /** ---------- 修改四：顶端对齐 ---------- */
       .justifyContent(FlexAlign.Start)
+    }
+      .width('100%')
+      .height('100%')
+
+      // 右下角新增健康数据按钮（浮层）
+      Row() {
+        Text('+')
+          .fontSize(28)
+          .fontColor(0xFFFFFFFF)
+      }
+      .width(54)
+      .height(54)
+      .backgroundColor($r('app.color.service_button_background_color'))
+      .borderRadius(27)
+      .justifyContent(FlexAlign.Center)
+      .alignItems(VerticalAlign.Center)
+      .align(Alignment.BottomEnd)
+      .margin({ right: 20, bottom: 20 })
+      .onClick(() => {
+        this.openHealthForm();
+      })
+      .zIndex(10)
     }
     .width('100%')
     .height('100%')
