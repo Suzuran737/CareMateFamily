@@ -1,3 +1,7 @@
+/**
+ * 问诊订单支付页
+ */
+
 import router from '@ohos.router';
 import { OrderInfo, PrescriptionDetail } from '../model/AdmissionRecord';
 import { getVisitRecordById, markVisitRecordPaid } from '../model/VisitRecordStore';

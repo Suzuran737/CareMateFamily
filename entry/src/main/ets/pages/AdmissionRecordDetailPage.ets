@@ -1,3 +1,7 @@
+/**
+ * 入住申请详情页
+ */
+
 // pages/AdmissionRecordDetailPage.ets
 import router from '@ohos.router';
 import { AdmissionRecord, ApplyFormData, AdmissionItem } from '../model/AdmissionRecord';

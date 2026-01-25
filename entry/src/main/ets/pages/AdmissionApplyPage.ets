@@ -1,4 +1,8 @@
-// pages/AdmissionApplyPage.ets
+/**
+ * 入住申请页面
+ */
+
+
 
 import { AdmissionItem, AdmissionRecord, ApplyFormData } from '../model/AdmissionRecord';
 import { KvStoreManager } from '../utils/KvStoreManager';

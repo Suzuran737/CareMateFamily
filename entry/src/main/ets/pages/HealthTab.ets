@@ -1,16 +1,7 @@
-// HealthTab.ets - 用户健康 Tab（纯 UI 静态占位版）
-//
-// ✅ 目标：先把页面结构/布局搭好（标题 + 用户下拉选择 + 多张健康数据卡片）
-// - 静态用户 + KvStore 用户数据混合展示
-// - UI 风格尽量对齐你给的 ArchiveTab：顶部标题栏 + 内容区标题带下划线 + 卡片圆角/浅灰背景/边框
-//
-// 🧩 交互：
-// - 使用 Select 下拉选择用户
-// - 选择不同用户后，更新页面展示的静态数据（占位文字）
-//
-// ⚠️ 注意：
-// - 该 Tab 一般由 MainTabPage 引用，因此不加 @Entry
-// - 如果你希望它单独运行测试，再加 @Entry 即可
+/**
+ * 健康首页：健康卡片总览与用户选择
+ */
+
 
 import router from '@ohos.router';
 import type common from '@ohos.app.ability.common';

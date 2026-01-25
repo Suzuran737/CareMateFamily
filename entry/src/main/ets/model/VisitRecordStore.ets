@@ -1,3 +1,7 @@
+/**
+ * 问诊记录模拟数据与状态管理
+ */
+
 import { OrderInfo, PrescriptionDetail } from './AdmissionRecord';
 
 // 内存中的问诊记录缓存（模拟数据）

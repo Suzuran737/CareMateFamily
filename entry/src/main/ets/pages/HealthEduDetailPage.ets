@@ -1,3 +1,7 @@
+/**
+ * 健康宣教详情页
+ */
+
 import router from '@ohos.router';
 import { getHealthEduDetailById, type HealthEduDetail } from '../model/HealthEduCatalog';
 

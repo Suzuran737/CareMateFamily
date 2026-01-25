@@ -1,4 +1,8 @@
-// 服务项目数据模块（从 rawfile JSON 读取）
+/**
+ * 服务项目目录数据与解析工具
+ */
+
+// 服务项目数据模块
 import type common from '@ohos.app.ability.common';
 import util from '@ohos.util';
 

@@ -1,4 +1,7 @@
-// 服务采购首页：服务项目列表页
+/**
+ * 服务采购列表页
+ */
+
 import router from '@ohos.router';
 import type common from '@ohos.app.ability.common';
 import { loadServiceCatalog, type ServiceItem } from '../model/ServiceCatalog';

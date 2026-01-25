@@ -1,3 +1,7 @@
+/**
+ * 入住申请记录列表页
+ */
+
 // pages/AdmissionRecordsPage.ets - 入住申请列表
 import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
@@ -143,16 +147,16 @@ struct AdmissionRecordsPage {
       // --- 3. 底部固定按钮区 ---
       Column() {
         Row() {
-          // Button('清空记录')
-          //   .layoutWeight(1)
-          //   .height($r('app.float.service_button_height'))
-          //   .backgroundColor(Color.White)
-          //   .fontColor('#FF4D4F')
-          //   .fontSize($r('app.float.service_button_font_size'))
-          //   .borderRadius($r('app.float.service_button_border_radius'))
-          //   .border({ width: 1, color: '#FF4D4F' })
-          //   .margin({ right: 12 })
-          //   .onClick(() => this.onClearRecords())
+          Button('清空记录')
+            .layoutWeight(1)
+            .height($r('app.float.service_button_height'))
+            .backgroundColor(Color.White)
+            .fontColor('#FF4D4F')
+            .fontSize($r('app.float.service_button_font_size'))
+            .borderRadius($r('app.float.service_button_border_radius'))
+            .border({ width: 1, color: '#FF4D4F' })
+            .margin({ right: 12 })
+            .onClick(() => this.onClearRecords())
 
           Button('申请入住')
             .layoutWeight(1)

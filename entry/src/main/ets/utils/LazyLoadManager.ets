@@ -1,3 +1,7 @@
+/**
+ * 列表懒加载的通用逻辑
+ */
+
 export class LazyLoadManager<T> {
   private pageSize: number;
   private items: T[] = [];

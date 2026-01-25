@@ -1,4 +1,7 @@
-// 服务预约表单页
+/**
+ * 服务预约下单页
+ */
+
 import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
 import type common from '@ohos.app.ability.common';

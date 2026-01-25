@@ -1,4 +1,7 @@
-// RegisterPage.ets - 注册页面
+/**
+ * 注册页面
+ */
+
 import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
 import type common from '@ohos.app.ability.common';

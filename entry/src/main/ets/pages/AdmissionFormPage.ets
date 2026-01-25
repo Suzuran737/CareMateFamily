@@ -1,4 +1,8 @@
-// pages/AdmissionFormPage.ets
+/**
+ * 入住申请表单页
+ */
+
+
 
 import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';

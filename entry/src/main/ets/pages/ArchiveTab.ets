@@ -1,3 +1,7 @@
+/**
+ * 用户档案页：康养用户列表与管理
+ */
+
 // 用户档案 Tab 页面
 import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';

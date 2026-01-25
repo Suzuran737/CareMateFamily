@@ -1,3 +1,7 @@
+/**
+ * 康养用户详情页
+ */
+
 import router from '@ohos.router';
 import type common from '@ohos.app.ability.common';
 import { CareUserStoreManager, CareUserRecord } from '../utils/CareUserStoreManager';

@@ -1,4 +1,7 @@
-// VisitRecordsPage.ets - 问诊记录列表页
+/**
+ * 问诊记录列表页
+ */
+
 import router from '@ohos.router';
 import { OrderInfo, PrescriptionDetail } from '../model/AdmissionRecord';
 import { getVisitRecordList } from '../model/VisitRecordStore';

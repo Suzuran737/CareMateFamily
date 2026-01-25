@@ -1,3 +1,7 @@
+/**
+ * 问诊记录详情页（兼容入口）
+ */
+
 import router from '@ohos.router';
 import { OrderInfo } from '../model/AdmissionRecord';
 

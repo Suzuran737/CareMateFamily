@@ -1,4 +1,7 @@
-// LoginPage.ets - 登录页面
+/**
+ * 登录页面
+ */
+
 import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
 import type common from '@ohos.app.ability.common';

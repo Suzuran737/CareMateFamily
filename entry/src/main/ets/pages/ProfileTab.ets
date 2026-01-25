@@ -1,3 +1,7 @@
+/**
+ * 我的页面：用户信息与快捷入口
+ */
+
 // ProfileTab.ets - 我的 Tab 页面
 import router from '@ohos.router';
 

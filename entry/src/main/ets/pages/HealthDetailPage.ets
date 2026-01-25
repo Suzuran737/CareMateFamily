@@ -1,3 +1,7 @@
+/**
+ * 健康详情页：指标曲线与记录列表
+ */
+
 // 导入数据模型
 import router from '@ohos.router';
 import type common from '@ohos.app.ability.common';

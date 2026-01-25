@@ -1,3 +1,9 @@
+/**
+ * 咨询页：健康宣教列表与详情入口
+ */
+
+
+
 import router from '@ohos.router';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { getHealthEduList, type HealthEduItem } from '../model/HealthEduCatalog';

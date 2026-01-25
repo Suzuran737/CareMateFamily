@@ -1,3 +1,7 @@
+/**
+ * 首页：Banner、核心入口与健康宣教列表
+ */
+
 import router from '@ohos.router';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { getHealthEduList, type HealthEduItem } from '../model/HealthEduCatalog';

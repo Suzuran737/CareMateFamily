@@ -1,6 +1,7 @@
-// utils/KvStoreManager.ts
+/**
+ * 入住申请数据的 KvStore 封装
+ */
 
-// 1. 注意：引入的模块变成了 @ohos.data.distributedKVStore
 import distributedKVStore from '@ohos.data.distributedKVStore';
 import type common from '@ohos.app.ability.common';
 import { AdmissionRecord } from '../model/AdmissionRecord'; // 确保路径正确
@@ -10,7 +11,7 @@ const TABLE_PREFIX = 'admission_records';
 
 export class KvStoreManager {
   private static instance: KvStoreManager | null = null;
-  // 2. 类型变更为 SingleKVStore (单版本数据库)
+  // 类型变更为 SingleKVStore (单版本数据库)
   private kvStore: distributedKVStore.SingleKVStore | null = null;
 
   private constructor() {
@@ -23,7 +24,6 @@ export class KvStoreManager {
     return KvStoreManager.instance;
   }
 
-  // utils/KvStoreManager.ts
 
   public async initKvStore(context: common.UIAbilityContext): Promise<void> {
     if (this.kvStore) return;

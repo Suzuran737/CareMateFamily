@@ -1,4 +1,7 @@
-// 主页面：底部 Tabs 导航，共 5 个标签
+/**
+ * 主页面：底部 Tabs 导航，共 5 个标签
+ */
+
 import HomeTab from './HomeTab';
 import HealthTab from './HealthTab';
 import ConsultTab from './ConsultTab';

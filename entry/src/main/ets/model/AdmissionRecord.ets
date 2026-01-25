@@ -1,3 +1,7 @@
+/**
+ * 入住申请与入住记录的数据结构
+ */
+
 // 1. 声明 AdmissionItem
 export class AdmissionItem {
   name: string = '';

@@ -1,3 +1,7 @@
+/**
+ * 健康模块的静态数据与指标类型定义
+ */
+
 // 用户相关模型
 export class HealthUser {
   id: string;

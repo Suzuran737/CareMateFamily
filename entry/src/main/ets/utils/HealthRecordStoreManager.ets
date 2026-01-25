@@ -1,3 +1,7 @@
+/**
+ * 健康记录的 KvStore 封装
+ */
+
 import distributedKVStore from '@ohos.data.distributedKVStore';
 import type common from '@ohos.app.ability.common';
 import util from '@ohos.util';

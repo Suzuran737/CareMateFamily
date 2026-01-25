@@ -1,3 +1,7 @@
+/**
+ * 健康数据录入表单页
+ */
+
 import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
 import type common from '@ohos.app.ability.common';
