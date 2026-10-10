@@ -442,29 +442,6 @@ cd CareMateFamily
 
 ---
 
-## 📖 学习指南
-
-### 初学者路线
-1. 阅读 `EntryAbility` 理解应用入口
-2. 查看 `MainTabPage` 学习 Tabs 导航框架
-3. 研究 `LoginPage` 和 `RegisterPage` 学习表单验证
-4. 学习 `HomeTab` 了解列表刷新和分页
-
-### 进阶学习
-1. 深入 `UserStoreManager` 系列，学习 KvStore 使用
-2. 研究 `HealthDetailPage` 的 Canvas 绘制逻辑
-3. 分析 `ServiceCatalog` 的 rawfile 文件加载机制
-4. 学习 `LazyLoadManager` 的懒加载实现
-
-### 项目扩展建议
-- [ ] 添加网络请求，连接真实后端服务
-- [ ] 集成支付 SDK，实现真实支付流程
-- [ ] 添加推送通知，提醒用户重要事件
-- [ ] 优化性能，引入更多图表库
-- [ ] 适配不同屏幕尺寸和折叠屏
-
----
-
 ## 📝 主要文件说明
 
 ### 核心模块
@@ -484,28 +461,12 @@ cd CareMateFamily
 
 ---
 
-## 🔗 相关资源
-
-- [HarmonyOS 官方文档](https://developer.harmonyos.com/)
-- [ArkTS 语言指南](https://developer.harmonyos.com/cn/docs/documentation/doc-guides-V3/arkts-0000001000033729)
-- [ArkUI 组件库](https://developer.harmonyos.com/cn/docs/documentation/doc-guides-V3/arkui-overview-0000001000033728)
-- [KvStore 使用指南](https://developer.harmonyos.com/cn/docs/documentation/doc-guides-V3/kvstore-overview-0000001000033730)
-
----
-
 ## 📄 许可协议
 
 本项目采用 **MIT License** 开源许可，详见 [LICENSE](LICENSE) 文件。
 
 ---
 
-## 👤 作者
-
-**CareMateFamily** - 移动互联网编程课程项目
-
-如有问题或建议，欢迎提交 Issue 或 Pull Request！
-
----
 
 <div align="center">
 
